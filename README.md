@@ -21,7 +21,7 @@ This repository contains the implementation, synthetic data experiments, and rea
 ---
 
 ### Repository Structure
-'''
+```
 PoLoN-Process/
 │
 ├── PoLoN.ipynb              # Main Jupyter notebook with training, inference, and plots
@@ -32,7 +32,7 @@ PoLoN-Process/
 ├── results/                  # Generated output figures and result summaries
 ├── requirements.txt          # List of required Python packages
 └── README.md                 # This file
-'''
+```
 ### 🧩 Examples
 
 ```bash
