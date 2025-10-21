@@ -21,4 +21,11 @@ This repository contains the implementation, synthetic data experiments, and rea
 ---
 
 ### Repository Structure
+### 🧩 Examples
+
+You can reproduce the examples used in the paper by running:
+
+```bash
+python generate_synthetic_data.py
+
 
