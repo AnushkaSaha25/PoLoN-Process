@@ -21,9 +21,19 @@ This repository contains the implementation, synthetic data experiments, and rea
 ---
 
 ### Repository Structure
-### 🧩 Examples
 
-You can reproduce the examples used in the paper by running:
+PoLoN-Process/
+│
+├── PoLoN.ipynb              # Main Jupyter notebook with training, inference, and plots
+├── data/                     # Example datasets (synthetic + real)
+│   ├── synthetic.csv
+│   └── higgs.csv
+├── helper_functions.py       # Supporting Python functions used by the notebook
+├── results/                  # Generated output figures and result summaries
+├── requirements.txt          # List of required Python packages
+└── README.md                 # This file
+
+### 🧩 Examples
 
 ```bash
 python generate_synthetic_data.py
