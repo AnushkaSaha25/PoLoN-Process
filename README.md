@@ -3,11 +3,14 @@ Poisson Log-Normal (PoLoN) Process for Non-Parametric Prediction of Count Data
 # Poisson Log-Normal (PoLoN) Process for Non-Parametric Prediction of Count Data
 
 ### Overview
-Modeling datasets of integer counts is crucial in physics and other scientific disciplines, where measurements involve discrete, non-negative quantities.  
-Traditional approaches such as Poisson regression often struggle to capture complex, non-linear relationships.  
-The **Poisson Log-Normal (PoLoN) process** combines the flexibility of Gaussian Processes with the Poisson-lognormal distribution to accurately model integer count data.
+Modeling datasets of integer counts is crucial in physics and other scientific disciplines, where measurements involve discrete, non-negative quantities. Traditional approaches such as Poisson regression often struggle to capture complex, non-linear relationships.  
 
-This repository contains the implementation, synthetic data experiments, and real-world applications (e.g., Higgs Boson signal analysis and bike rental prediction) for the PoLoN framework.
+The **Poisson Log-Normal (PoLoN) process** combines the flexibility of Gaussian Processes with the Poisson-lognormal distribution to model integer count data accurately.  
+
+This repository provides:  
+- Core implementations of PoLoN for predicting expected counts and most probable outcomes.  
+- A variant of the prediction function that incorporates **signal + background decomposition**, useful for applications like particle physics where separating signal from background noise is important.  
+- Synthetic experiments and real-world examples, such as Higgs Boson signal analysis and bike rental demand prediction.  
 
 ---
 
