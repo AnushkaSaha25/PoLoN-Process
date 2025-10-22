@@ -38,7 +38,7 @@ jupyter notebook PoLoN.ipynb
 
 ## Usage
 
-This repository provides tools for **training, prediction, and visualization** of count data using the PoLoN (Poisson Latent Network) process. The main function for this workflow is **`polon_predict_and_plot`**, which leverages helper functions defined in `helpers.py`.
+This repository provides tools for **training, prediction, and visualization** of count data using the PoLoN (Poisson Log-Normal) process. The main function for this workflow is **`polon_predict_and_plot`**, which leverages helper functions defined in `helpers.py`.
 
 ### Function Overview
 
