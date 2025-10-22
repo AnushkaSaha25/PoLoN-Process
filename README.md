@@ -26,6 +26,7 @@ Install the required Python packages:
 
 ```bash
 pip install -r requirements.txt
+```
 Then, launch the Jupyter notebook:
 
 ```bash
