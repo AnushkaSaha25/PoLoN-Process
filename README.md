@@ -30,7 +30,7 @@ PoLoN-Process/
 ├── data/                     # Example datasets (synthetic + real)
 │   ├── synthetic.csv
 │   └── higgs.csv
-├── helpers.py       # Supporting Python functions used by the notebook
+├── helper.py       # Supporting Python functions used by the notebook
 ├── requirements.txt          # List of required Python packages
 └── README.md                 # This file
 ```
@@ -54,13 +54,13 @@ jupyter notebook PoLoN.ipynb
 ### Usage
 
 This repository provides tools for **training, prediction, and visualization** of count data using the PoLoN (Poisson Log-Normal) process.  
-The main workflow is implemented through two functions — **`polon_predict_and_plot`** and **`predict_signal_background`** — both of which leverage helper functions defined in `helpers.py`.
+The main workflow is implemented through two functions — **`polon_predict_and_plot`** and **`predict_signal_background`** — both of which leverage helper functions defined in `helper.py`.
 
 ---
 
 #### Helper Function Reference
 
-These helper functions, defined in `helpers.py`, support the main PoLoN prediction workflow:
+These helper functions, defined in `helper.py`, support the main PoLoN prediction workflow:
 
 - **`compute_cov_matrix`**: Computes the RBF covariance matrix for the training points.  
 - **`compute_K`**: Computes the covariance vector between training points and a new input point.  
@@ -83,7 +83,7 @@ This function models integer count data using the **PoLoN framework** without ex
 - Predicts the **expected counts** (Poisson mean) and **most probable counts** (Poisson mode) for new input points.
 - Computes **Monte Carlo-based 95% confidence intervals** for predicted counts.
 - Generates plots showing the predictive mean, confidence intervals, and most probable outputs.
-> **Note:** The main functions are defined in `helpers.py` for future reuse and do not appear directly in the Jupyter notebook.  
+> **Note:** The main functions are defined in `helper.py` for future reuse and do not appear directly in the Jupyter notebook.  
 > This modular structure allows users to reuse functions without modifying notebook code.
 
 ##### **Inputs**
@@ -111,7 +111,7 @@ Plots showing the predictive mean, confidence intervals, and most probable outpu
 ##### **Example**
 
 ```python
-from helpers import *
+from helper import *
 import numpy as np
 
 # Example training data
@@ -178,7 +178,7 @@ The function returns a dictionary containing:
 > **Note:**  
 > This function can be computationally expensive, especially when exploring multiple signal strengths or realizations.  
 > For large-scale experiments, **parallelization (e.g., via Amarel job submission or HPC clusters)** is recommended.  
-> The function itself is defined in `helpers.py` for modular reuse and does not appear directly in the Jupyter notebook.
+> The function itself is defined in `helper.py` for modular reuse and does not appear directly in the Jupyter notebook.
 ---
 
 
