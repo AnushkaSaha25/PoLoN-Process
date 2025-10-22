@@ -39,14 +39,14 @@ jupyter notebook PoLoN.ipynb
 ---
 
 
-## Usage
+### Usage
 
 This repository provides tools for **training, prediction, and visualization** of count data using the PoLoN (Poisson Log-Normal) process.  
 The main workflow is implemented through two functions — **`polon_predict_and_plot`** and **`predict_signal_background`** — both of which leverage helper functions defined in `helpers.py`.
 
 ---
 
-### Helper Function Reference
+#### Helper Function Reference
 
 These helper functions, defined in `helpers.py`, support the main PoLoN prediction workflow:
 
@@ -63,11 +63,11 @@ Other internal utilities handle Hessians, Cholesky decompositions, Gaussian bump
 
 ---
 
-### Function 1: `polon_predict_and_plot`
+#### Function 1: `polon_predict_and_plot`
 
 This function models integer count data using the **PoLoN framework** without explicitly separating signal and background components.  
 
-#### **Function Overview**
+##### **Function Overview**
 
 - Trains the PoLoN model on input training data `(X_train, t_train)`.
 - Optimizes kernel hyperparameters via log-likelihood maximization.
@@ -75,7 +75,7 @@ This function models integer count data using the **PoLoN framework** without ex
 - Computes **Monte Carlo-based 95% confidence intervals** for predicted counts.
 - Generates plots showing the predictive mean, confidence intervals, and most probable outputs.
 
-#### **Inputs**
+##### **Inputs**
 
 | Parameter      | Type       | Description |
 |----------------|------------|-------------|
@@ -86,7 +86,7 @@ This function models integer count data using the **PoLoN framework** without ex
 | `bounds`       | list of tuples, optional | Bounds for hyperparameters during optimization. Default: `[(0.0001, 30), (0.01, 30)]` |
 | `n_samples`    | int, optional | Number of Monte Carlo samples for most probable Poisson outputs. Default: 5000 |
 
-#### **Outputs**
+##### **Outputs**
 
 - `X_input`: Input points where predictions were made  
 - `mu_values`: Predictive mean of the latent log-rate  
@@ -97,7 +97,7 @@ This function models integer count data using the **PoLoN framework** without ex
 
 Plots showing the predictive mean, confidence intervals, and most probable outputs are automatically generated.
 
-#### **Example**
+##### **Example**
 
 ```python
 from helpers import *
