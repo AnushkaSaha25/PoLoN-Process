@@ -81,7 +81,7 @@ Plots showing the predictive mean, confidence intervals, and most probable outpu
 ### Example
 
 ```python
-from helpers import polon_predict_and_plot
+from helpers import *
 import numpy as np
 
 # Example training data
