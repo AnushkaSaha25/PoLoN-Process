@@ -102,6 +102,7 @@ most_probable = results["most_probable_output"]
 
 print("Predicted Poisson mean:", poisson_mean)
 print("Most probable Poisson outputs:", most_probable)
+```
 ---
 ### Repository Structure
 ```
