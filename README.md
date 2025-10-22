@@ -41,9 +41,14 @@ jupyter notebook PoLoN.ipynb
 
 ## Usage
 
-This repository provides tools for **training, prediction, and visualization** of count data using the PoLoN (Poisson Log-Normal) process. The main function for this workflow is **`polon_predict_and_plot`**, which leverages helper functions defined in `helpers.py`.
+This repository provides tools for **training, prediction, and visualization** of count data using the PoLoN (Poisson Log-Normal) process.  
+The main workflow is implemented through two functions — **`polon_predict_and_plot`** and **`predict_signal_background`** — both of which leverage helper functions defined in `helpers.py`.
 
-This function internally uses several helper functions defined in `helpers.py`:
+---
+
+### Helper Function Reference
+
+These helper functions, defined in `helpers.py`, support the main PoLoN prediction workflow:
 
 - **`compute_cov_matrix`**: Computes the RBF covariance matrix for the training points.  
 - **`compute_K`**: Computes the covariance vector between training points and a new input point.  
@@ -51,24 +56,26 @@ This function internally uses several helper functions defined in `helpers.py`:
 - **`newton_optimization`**: Solves for the latent variables (`lambda`) using Newton’s method.  
 - **`rbf_kernel_extended`**: Computes the RBF kernel value between two points.  
 
-Other helper functions are used internally for computing Hessians, Cholesky decompositions, Gaussian bumps, and log-likelihood contributions.
+Other internal utilities handle Hessians, Cholesky decompositions, Gaussian bumps, and log-likelihood contributions.
 
+> **Note:** The main functions are defined in `helpers.py` for future reuse and do not appear directly in the Jupyter notebook.  
+> This modular structure allows users to reuse functions without modifying notebook code.
 
-### Function Overview
+---
 
-**`polon_predict_and_plot`**:
+### Function 1: `polon_predict_and_plot`
+
+This function models integer count data using the **PoLoN framework** without explicitly separating signal and background components.  
+
+#### **Function Overview**
 
 - Trains the PoLoN model on input training data `(X_train, t_train)`.
-- Optimizes kernel hyperparameters using the log-likelihood function.
+- Optimizes kernel hyperparameters via log-likelihood maximization.
 - Predicts the **expected counts** (Poisson mean) and **most probable counts** (Poisson mode) for new input points.
-- Computes **Monte Carlo-based 95% confidence intervals** for predicted Poisson counts.
+- Computes **Monte Carlo-based 95% confidence intervals** for predicted counts.
 - Generates plots showing the predictive mean, confidence intervals, and most probable outputs.
 
-The function internally relies on several helper functions and additional utilities for numerical computations:
-
-> **Note:** The function is defined in `helpers.py` for future reuse and does not appear directly in the Jupyter notebook. This allows users to apply it without modifying notebook code.
-
-### Inputs
+#### **Inputs**
 
 | Parameter      | Type       | Description |
 |----------------|------------|-------------|
@@ -79,20 +86,18 @@ The function internally relies on several helper functions and additional utilit
 | `bounds`       | list of tuples, optional | Bounds for hyperparameters during optimization. Default: `[(0.0001, 30), (0.01, 30)]` |
 | `n_samples`    | int, optional | Number of Monte Carlo samples for most probable Poisson outputs. Default: 5000 |
 
-### Outputs
+#### **Outputs**
 
-The function returns a dictionary containing:
+- `X_input`: Input points where predictions were made  
+- `mu_values`: Predictive mean of the latent log-rate  
+- `std_values`: Predictive standard deviation of the latent log-rate  
+- `poisson_mean_output`: Predictive mean of Poisson counts  
+- `lower_bounds`, `upper_bounds`: Monte Carlo-based 95% confidence intervals  
+- `most_probable_output`: Most probable Poisson counts (mode)  
 
-- `X_input`: Array of input points where predictions were made  
-- `mu_values`: Predictive mean of the latent log-rate at each `X_input`  
-- `std_values`: Predictive standard deviation of the latent log-rate 
-- `poisson_mean_output`: Predictive mean of Poisson counts (expected counts)  
-- `lower_bounds`, `upper_bounds`: Monte Carlo-based 95% confidence intervals for predicted Poisson counts  
-- `most_probable_output`: Most probable Poisson counts (mode) for each `X_input`  
+Plots showing the predictive mean, confidence intervals, and most probable outputs are automatically generated.
 
-Plots showing the predictive mean, confidence intervals, and most probable outputs are also generated automatically.
-
-### Example
+#### **Example**
 
 ```python
 from helpers import *
@@ -105,7 +110,7 @@ t_train = np.array([5, 8, 12, 15])
 # Run PoLoN prediction
 results = polon_predict_and_plot(X_train, t_train)
 
-# Access predicted Poisson mean and most probable outputs
+# Access predicted results
 poisson_mean = results["poisson_mean_output"]
 most_probable = results["most_probable_output"]
 lower_ci = results["lower_bounds"]
