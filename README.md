@@ -58,9 +58,6 @@ These helper functions, defined in `helpers.py`, support the main PoLoN predicti
 
 Other internal utilities handle Hessians, Cholesky decompositions, Gaussian bumps, and log-likelihood contributions.
 
-> **Note:** The main functions are defined in `helpers.py` for future reuse and do not appear directly in the Jupyter notebook.  
-> This modular structure allows users to reuse functions without modifying notebook code.
-
 ---
 
 #### Function 1: `polon_predict_and_plot`
@@ -74,6 +71,8 @@ This function models integer count data using the **PoLoN framework** without ex
 - Predicts the **expected counts** (Poisson mean) and **most probable counts** (Poisson mode) for new input points.
 - Computes **Monte Carlo-based 95% confidence intervals** for predicted counts.
 - Generates plots showing the predictive mean, confidence intervals, and most probable outputs.
+> **Note:** The main functions are defined in `helpers.py` for future reuse and do not appear directly in the Jupyter notebook.  
+> This modular structure allows users to reuse functions without modifying notebook code.
 
 ##### **Inputs**
 
