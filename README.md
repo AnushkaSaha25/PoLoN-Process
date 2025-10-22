@@ -176,14 +176,10 @@ PoLoN-Process/
 ├── data/                     # Example datasets (synthetic + real)
 │   ├── synthetic.csv
 │   └── higgs.csv
-├── helper_functions.py       # Supporting Python functions used by the notebook
-├── results/                  # Generated output figures and result summaries
+├── helpers.py       # Supporting Python functions used by the notebook
 ├── requirements.txt          # List of required Python packages
 └── README.md                 # This file
 ```
-### 🧩 Examples
 
-```bash
-python generate_synthetic_data.py
 
 
