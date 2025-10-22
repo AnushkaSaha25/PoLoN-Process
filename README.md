@@ -21,8 +21,8 @@ This repository contains the implementation, synthetic data experiments, and rea
 ---
 
 ### Setup
-
-Install the required Python packages:
+To run the project, it is recomended to use Python 3.9 or higher.  
+Install all required dependencies using the `requirements.txt` file:
 
 ```bash
 pip install -r requirements.txt
