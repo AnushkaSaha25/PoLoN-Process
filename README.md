@@ -20,6 +20,18 @@ This repository contains the implementation, synthetic data experiments, and rea
 
 ---
 
+### Setup
+
+Install the required Python packages:
+
+```bash
+pip install -r requirements.txt
+Then, launch the Jupyter notebook:
+
+```bash
+jupyter notebook PoLoN.ipynb
+
+---
 ### Repository Structure
 ```
 PoLoN-Process/
