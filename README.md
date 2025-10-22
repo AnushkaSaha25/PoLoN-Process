@@ -31,6 +31,7 @@ Then, launch the Jupyter notebook:
 
 ```bash
 jupyter notebook PoLoN.ipynb
+```
 
 ---
 ### Repository Structure
