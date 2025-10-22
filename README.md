@@ -70,8 +70,8 @@ The function internally relies on several helper functions and additional utilit
 The function returns a dictionary containing:
 
 - `X_input`: Array of input points where predictions were made  
-- `mu_values`: Predictive mean of the latent log-lambda at each `X_input`  
-- `std_values`: Predictive standard deviation of the latent log-lambda  
+- `mu_values`: Predictive mean of the latent log-rate at each `X_input`  
+- `std_values`: Predictive standard deviation of the latent log-rate 
 - `poisson_mean_output`: Predictive mean of Poisson counts (expected counts)  
 - `lower_bounds`, `upper_bounds`: Monte Carlo-based 95% confidence intervals for predicted Poisson counts  
 - `most_probable_output`: Most probable Poisson counts (mode) for each `X_input`  
