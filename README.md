@@ -22,7 +22,19 @@ This repository provides:
 - Supports both synthetic and real-world datasets  
 
 ---
-
+### Repository Structure
+```
+PoLoN-Process/
+│
+├── PoLoN.ipynb              # Main Jupyter notebook with training, inference, and plots
+├── data/                     # Example datasets (synthetic + real)
+│   ├── synthetic.csv
+│   └── higgs.csv
+├── helpers.py       # Supporting Python functions used by the notebook
+├── requirements.txt          # List of required Python packages
+└── README.md                 # This file
+```
+---
 ### Setup
 To run the project, it is recommended to use Python 3.9 or higher.  
 Install all required dependencies using the `requirements.txt` file:
@@ -168,18 +180,7 @@ The function returns a dictionary containing:
 > For large-scale experiments, **parallelization (e.g., via Amarel job submission or HPC clusters)** is recommended.  
 > The function itself is defined in `helpers.py` for modular reuse and does not appear directly in the Jupyter notebook.
 ---
-### Repository Structure
-```
-PoLoN-Process/
-│
-├── PoLoN.ipynb              # Main Jupyter notebook with training, inference, and plots
-├── data/                     # Example datasets (synthetic + real)
-│   ├── synthetic.csv
-│   └── higgs.csv
-├── helpers.py       # Supporting Python functions used by the notebook
-├── requirements.txt          # List of required Python packages
-└── README.md                 # This file
-```
+
 
 
 
