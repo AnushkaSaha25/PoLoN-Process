@@ -120,6 +120,53 @@ print("Most probable Poisson outputs:", most_probable)
 print("95% confidence intervals:", list(zip(lower_ci, upper_ci)))
 
 ```
+#### Function 2: `predict_signal_background`
+
+This function extends the PoLoN framework to **jointly model background and signal components** in count data.  
+It is particularly useful in **physics analyses** (e.g., Higgs Boson detection), where observed data often consist of a smooth **background** plus a localized **signal** peak.
+
+##### **Function Overview**
+
+- Separately optimizes **PoLoN hyperparameters** on the background component.
+- Fits a **Gaussian signal model** on the signal region, allowing the amplitude, position, and width of the signal to vary freely.
+- Predicts the **combined PoLoN + Gaussian** count distribution across the full data range.
+- Produces decomposed outputs for background, signal, and total count prediction.
+
+The function ensures a clear distinction between **background** (PoLoN process) and **signal** (Gaussian bump), maintaining physical interpretability.
+
+##### **Inputs**
+
+| Parameter              | Type           | Description |
+|------------------------|----------------|-------------|
+| `X_bg`                 | `np.ndarray`   | Background input points |
+| `t_bg`                 | `np.ndarray`   | Observed background counts |
+| `X_signal`             | `np.ndarray`   | Signal input points |
+| `t_signal`             | `np.ndarray`   | Observed signal counts |
+| `bounds_theta`         | list of tuples, optional | Bounds for PoLoN hyperparameters. Default: `[(0.0001, 2), (0.01, 50)]` |
+| `theta_init`           | `np.ndarray`, optional | Initial guess for PoLoN hyperparameters. Default: `[0.05, 20.0]` |
+| `bounds_gauss`         | list of tuples, optional | Bounds for Gaussian signal parameters (scaled). Default: `[(0.01, 10), (μ_min/0.1, μ_max/0.1), (1.0, 50.0)]` |
+| `trans_params0_scaled` | list or `np.ndarray`, optional | Initial guess for scaled Gaussian parameters. Default: `[1.0, mean(X_signal)/0.1, 0.01]` |
+| `X_input`              | `np.ndarray`, optional | Points at which predictions are made. Default: 100 points spanning all data |
+
+##### **Outputs**
+
+The function returns a dictionary containing:
+
+- `theta_opt`: Optimized PoLoN hyperparameters  
+- `A_opt`: Optimized Gaussian amplitude (signal strength)  
+- `mu_opt`: Optimized Gaussian mean (signal position)  
+- `sigma_opt`: Optimized Gaussian width (signal spread)  
+- `X_input`: Prediction points across the full data range  
+- `mu_values`: Predicted PoLoN latent mean (background)  
+- `std_values`: Predicted PoLoN latent standard deviation  
+- `gaussian_signal`: Fitted Gaussian signal contribution  
+- `poisson_mean`: Combined PoLoN + Gaussian mean counts  
+- `theta_success`, `gauss_success`: Optimization success flags  
+
+> **Note:**  
+> This function can be computationally expensive, especially when exploring multiple signal strengths or realizations.  
+> For large-scale experiments, **parallelization (e.g., via Amarel job submission or HPC clusters)** is recommended.  
+> The function itself is defined in `helpers.py` for modular reuse and does not appear directly in the Jupyter notebook.
 ---
 ### Repository Structure
 ```
