@@ -40,6 +40,17 @@ jupyter notebook PoLoN.ipynb
 
 This repository provides tools for **training, prediction, and visualization** of count data using the PoLoN (Poisson Log-Normal) process. The main function for this workflow is **`polon_predict_and_plot`**, which leverages helper functions defined in `helpers.py`.
 
+This function internally uses several helper functions defined in `helpers.py`:
+
+- **`compute_cov_matrix`**: Computes the RBF covariance matrix for the training points.  
+- **`compute_K`**: Computes the covariance vector between training points and a new input point.  
+- **`neg_log_likelihood_function`**: Computes the negative log-likelihood for hyperparameter optimization.  
+- **`newton_optimization`**: Solves for the latent variables (`lambda`) using Newton’s method.  
+- **`rbf_kernel_extended`**: Computes the RBF kernel value between two points.  
+
+Other helper functions are used internally for computing Hessians, Cholesky decompositions, Gaussian bumps, and log-likelihood contributions.
+
+
 ### Function Overview
 
 **`polon_predict_and_plot`**:
