@@ -134,21 +134,21 @@ print("95% confidence intervals:", list(zip(lower_ci, upper_ci)))
 ```
 #### Function 2: `predict_signal_background_with_plot`
 
-This function jointly models **background** and **signal** components in count data using the PoLoN (Poisson Log-Normal) process for background modeling and a Gaussian function for the signal.  
-It also **automatically visualizes** both the total prediction and the signal-background decomposition.
+This function models count data using the **PoLoN (Poisson–Lognormal)** process, which inherently represents both **background** and **signal** components within a unified probabilistic framework.  
+It automatically fits the model, optimizes parameters, and visualizes the **PoLoN prediction** along with the **signal–background decomposition**.
 
-It is particularly useful in **physics applications** (e.g., Higgs Boson searches), where observed data consist of a smooth background plus a localized signal peak.
+This approach is particularly relevant in **physics applications** (e.g., Higgs Boson searches), where observed data are composed of a smooth stochastic background and a localized signal peak — both naturally represented within the PoLoN process.
 
 ---
 
 ##### **Function Overview**
 
-- Optimizes PoLoN hyperparameters using only the **background** data.
-- Fits a **Gaussian signal** model on the signal region (amplitude, mean, and width optimized).
-- Predicts the combined **PoLoN + Gaussian** counts across the full data range.
+- Optimizes **PoLoN hyperparameters** using the background-dominated region of the data.  
+- Extends the fitted PoLoN model to include a **localized signal variation**, modeled internally through an additional parameterized component.  
+- Predicts the full **PoLoN intensity field** (signal + background combined) across the entire input range.  
 - Automatically generates two subplots:
-  1. Total prediction vs observed data  
-  2. Signal-background decomposition
+  1. Total PoLoN prediction vs observed data  
+  2. Signal–background decomposition  
 
 ---
 
@@ -162,8 +162,8 @@ It is particularly useful in **physics applications** (e.g., Higgs Boson searche
 | `t_signal` | `np.ndarray` | Observed signal counts |
 | `bounds_theta` | list of tuples, optional | Bounds for PoLoN hyperparameters. Default: `[(0.0001, 2), (0.01, 50)]` |
 | `theta_init` | `np.ndarray`, optional | Initial guess for PoLoN hyperparameters. Default: `[0.05, 20.0]` |
-| `bounds_gauss` | list of tuples, optional | Bounds for Gaussian signal parameters (scaled). Default: `[(0.01, 10), (μ_min/0.1, μ_max/0.1), (1.0, 50.0)]` |
-| `trans_params0_scaled` | list or `np.ndarray`, optional | Initial guess for scaled Gaussian parameters. Default: `[1.0, mean(X_signal)/0.1, 0.01]` |
+| `bounds_signal` | list of tuples, optional | Bounds for the localized signal parameters (scaled). Default: `[(0.01, 10), (μ_min/0.1, μ_max/0.1), (1.0, 50.0)]` |
+| `signal_params0_scaled` | list or `np.ndarray`, optional | Initial guess for the scaled signal parameters. Default: `[1.0, mean(X_signal)/0.1, 0.01]` |
 | `X_input` | `np.ndarray`, optional | Input points where predictions are evaluated. Default: 100 evenly spaced points across all data. |
 
 ---
@@ -173,15 +173,15 @@ It is particularly useful in **physics applications** (e.g., Higgs Boson searche
 Returns a dictionary containing:
 
 - `theta_opt`: optimized PoLoN hyperparameters  
-- `A_opt`: optimized Gaussian amplitude (signal strength)  
-- `mu_opt`: optimized Gaussian mean (signal position)  
-- `sigma_opt`: optimized Gaussian width (signal spread)  
-- `poisson_mean_background`: predicted background counts (PoLoN)  
-- `poisson_mean_total`: combined signal + background counts  
-- `mu_values`: latent PoLoN mean  
-- `std_values`: latent PoLoN standard deviation  
-- `gaussian_signal`: fitted Gaussian signal contribution  
-- `theta_success`, `gauss_success`: optimization success flags  
+- `A_opt`: optimized signal amplitude  
+- `mu_opt`: optimized signal mean (location)  
+- `sigma_opt`: optimized signal width (spread)  
+- `poisson_mean_background`: background contribution (PoLoN)  
+- `poisson_mean_total`: total PoLoN prediction (signal + background)  
+- `mu_values`: latent PoLoN mean field  
+- `std_values`: latent PoLoN standard deviation field  
+- `signal_component`: fitted localized signal contribution  
+- `theta_success`, `signal_success`: optimization success flags  
 
 ---
 
@@ -189,18 +189,18 @@ Returns a dictionary containing:
 
 When executed, this function automatically generates **two plots**:
 
-1. **Total Prediction vs Observed Data**
-   - Blue: total prediction (signal + background)  
-   - Green dashed: PoLoN background prediction  
-   - Orange / gray dots: observed signal and background points  
-   - Shaded blue region: approximate uncertainty band  
+1. **Total PoLoN Prediction vs Observed Data**  
+   - Blue: total PoLoN prediction (signal + background)  
+   - Green dashed: background-only component  
+   - Orange / gray dots: observed data points (signal and background)  
+   - Shaded blue region: uncertainty band from PoLoN fluctuations  
 
-2. **Signal and Background Decomposition**
-   - Red: fitted Gaussian signal  
-   - Green dashed: PoLoN background  
-   - Blue: combined total counts  
+2. **Signal and Background Decomposition**  
+   - Red: localized signal component  
+   - Green dashed: background component  
+   - Blue: total PoLoN model output  
 
-These visualizations make it easy to assess model quality and signal significance.
+These visualizations clearly demonstrate how the PoLoN process captures both the stochastic background and the localized signal within a single probabilistic framework.
 
 ---
 
@@ -216,11 +216,11 @@ t_bg = np.random.poisson(10 * np.exp(-10 * X_bg))
 X_signal = np.linspace(0.45, 0.55, 10)
 t_signal = np.random.poisson(50 * np.exp(-((X_signal - 0.5)**2) / (2 * 0.01**2)))
 
-# Run PoLoN + Gaussian signal prediction with visualization
+# Run PoLoN model with signal-background decomposition and visualization
 results = predict_signal_background_with_plot(X_bg, t_bg, X_signal, t_signal)
 
 print("Optimized PoLoN parameters:", results["theta_opt"])
-print("Optimized Gaussian (A, μ, σ):", results["A_opt"], results["mu_opt"], results["sigma_opt"])
+print("Optimized signal (A, μ, σ):", results["A_opt"], results["mu_opt"], results["sigma_opt"])
 
 > **Note:**  
 > This function can be computationally expensive, especially when exploring multiple signal strengths or realizations.  
