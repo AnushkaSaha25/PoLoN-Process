@@ -204,26 +204,42 @@ These visualizations clearly demonstrate how the PoLoN process captures both the
 
 ---
 
-##### **Example**
+##### **Example: Using `predict_signal_background_with_plot` with a signal window**
 
 ```python
-from helper import predict_signal_background_with_plot
-import numpy as np
+from helper import *  # adjust import as needed
 
-# Example background and signal data
-X_bg = np.linspace(0, 0.4, 20)
-t_bg = np.random.poisson(10 * np.exp(-10 * X_bg))
-X_signal = np.linspace(0.45, 0.55, 10)
-t_signal = np.random.poisson(50 * np.exp(-((X_signal - 0.5)**2) / (2 * 0.01**2)))
+# Load unbinned data from repo
+unbinned_data = np.load("data/unbinned_diphoton_mass.npy")  # relative path in repo
 
-# Run PoLoN model with signal-background decomposition and visualization
+# Histogram setup
+xmin, xmax, step_size = 99.5, 160.5, 1.0
+bin_edges = np.arange(xmin, xmax + step_size, step_size)
+bin_centres = np.arange(xmin + step_size/2, xmax + step_size/2, step_size)
+data_counts, _ = np.histogram(unbinned_data, bins=bin_edges)
+
+# --- Define a signal window (user chooses) ---
+signal_window = (bin_centres >= 120) & (bin_centres <= 140)
+
+# Split data manually into signal and background regions
+X_signal = bin_centres[signal_window]
+t_signal = data_counts[signal_window]
+
+X_bg = bin_centres[~signal_window]
+t_bg = data_counts[~signal_window]
+
+# --- Run PoLoN prediction with background and signal inputs ---
 results = predict_signal_background_with_plot(X_bg, t_bg, X_signal, t_signal)
 
-print("Optimized PoLoN parameters:", results["theta_opt"])
-print("Optimized signal (A, μ, σ):", results["A_opt"], results["mu_opt"], results["sigma_opt"])
-```
+print("Optimized PoLoN hyperparameters:", results["theta_opt"])
+print("Optimized Gaussian signal (A, μ, σ):", results["A_opt"], results["mu_opt"], results["sigma_opt"])
 
-> **Note:**  
+```
+**Note 1 :** You can provide a **signal window** by selecting the subset of `X` and counts (`t`) where a localized signal is expected. The function will use these points as `X_signal`/`t_signal` and the rest as background (`X_bg`/`t_bg`). This allows flexible modeling of signal vs. background contributions.
+
+
+
+> **Note 2 :**  
 > This function can be computationally expensive, especially when exploring multiple signal strengths or realizations.  
 > For large-scale experiments, **parallelization (e.g., via Amarel job submission or HPC clusters)** is recommended.  
 > The function itself is defined in `helper.py` for modular reuse and does not appear directly in the Jupyter notebook.
