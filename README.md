@@ -26,7 +26,7 @@ PoLoN-Process/
 │
 ├── PoLoN.ipynb              # Main Jupyter notebook with training, inference, and plots
 ├── data/                     # Example datasets (synthetic + real)
-│   ├── synthetic.csv
+│   ├── hour.csv
 │   └── data/unbinned_diphoton_mass.npy
 ├── helper.py       # Supporting Python functions used by the notebook
 ├── requirements.txt          # List of required Python packages
