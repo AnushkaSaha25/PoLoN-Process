@@ -152,6 +152,7 @@ print("Most probable Poisson outputs:", most_probable)
 print("95% confidence intervals:", list(zip(lower_ci, upper_ci)))
 
 ```
+---
 #### Function 2: `predict_signal_background_with_plot`
 
 This function models count data using the **PoLoN (Poisson–Lognormal)** process, which inherently represents both **background** and **signal** components within a unified probabilistic framework.  
@@ -159,7 +160,6 @@ It automatically fits the model, optimizes parameters, and visualizes the **PoLo
 
 This approach is particularly relevant in **physics applications** (e.g., Higgs Boson searches), where observed data are composed of a smooth stochastic background and a localized signal peak — both naturally represented within the PoLoN process.
 
----
 
 ##### **Function Overview**
 
@@ -170,7 +170,6 @@ This approach is particularly relevant in **physics applications** (e.g., Higgs 
   1. Total PoLoN prediction vs observed data  
   2. Signal–background decomposition  
 
----
 
 ##### **Inputs**
 
@@ -186,7 +185,6 @@ This approach is particularly relevant in **physics applications** (e.g., Higgs 
 | `signal_params0_scaled` | list or `np.ndarray`, optional | Initial guess for the scaled signal parameters. Default: `[1.0, mean(X_signal)/0.1, 0.01]` |
 | `X_input` | `np.ndarray`, optional | Input points where predictions are evaluated. Default: 100 evenly spaced points across all data. |
 
----
 
 ##### **Outputs**
 
@@ -203,7 +201,6 @@ Returns a dictionary containing:
 - `signal_component`: fitted localized signal contribution  
 - `theta_success`, `signal_success`: optimization success flags  
 
----
 
 ##### **Visualization Output**
 
@@ -222,7 +219,6 @@ When executed, this function automatically generates **two plots**:
 
 These visualizations clearly demonstrate how the PoLoN process captures both the stochastic background and the localized signal within a single probabilistic framework.
 
----
 
 ##### **Example: Using `predict_signal_background_with_plot` with a signal window**
 
@@ -291,6 +287,7 @@ print("Optimized Gaussian signal (A, μ, σ):", results["A_opt"], results["mu_op
 - **Visualization:**  
   - Both functions automatically generate plots to visualize predictions, uncertainties, and signal-background decomposition (if applicable).  
   - Use the plots to validate your signal window choice and assess model quality.
+    
 
 
 
