@@ -265,12 +265,33 @@ print("Optimized Gaussian signal (A, μ, σ):", results["A_opt"], results["mu_op
 > For large-scale experiments, **parallelization (e.g., via Amarel job submission or HPC clusters)** is recommended.  
 > The function itself is defined in `helper.py` for modular reuse and does not appear directly in the Jupyter notebook.
 ---
-#### Tips for Users
+### Tips & Best Practices
 
-- You can replace the example datasets with your own data files in `data/`.
-- Use the function polon_predict_and_plot() or predict_signal_background_with_plot() depending on your needs, if you want to use the model for the prediction perpose for a smoothly varying function use the first one, if there is a localized signal whose approximate position is known, use the second function- this will also give info about the properties of the signal
-- The PoLoN functions are modular; importing `helper.py` is sufficient to access all functionality.  
-- For large datasets or multiple signal realizations, consider using HPC or parallel execution.
+- **Choosing the Right Function:**  
+  - Use `polon_predict_and_plot()` for smooth, background-dominated count data or general PoLoN predictions.  
+  - Use `predict_signal_background_with_plot()` when there is a **localized signal** whose approximate position is known. This function provides additional information about the signal’s properties (amplitude, mean location, and width).
+
+- **Defining a Signal Window:**  
+  - The signal window is **user-defined**. You need to provide `X_bg`, `t_bg` for background and `X_signal`, `t_signal` for the signal region.  
+  - This approach allows you to explore different signal regions without modifying the function itself.
+
+- **Using Your Own Data:**  
+  - Place datasets in the `data/` folder.  
+  - Update file paths in the notebook or scripts accordingly. Supported formats include `.csv` and `.npy`.  
+  - Ensure that the data is formatted consistently with the examples (1D arrays for counts and input features).
+
+- **Performance Considerations:**  
+  - The functions, especially `predict_signal_background_with_plot()`, can be computationally intensive for large datasets or multiple signal realizations.  
+  - For heavy computations, consider **parallel execution**, HPC clusters, or job submission systems like Amarel.
+
+- **Modularity and Reusability:**  
+  - All PoLoN functions are defined in `helper.py`.  
+  - Importing this module is sufficient to access the core functionality; the notebook itself does not need to be modified for reusing the code.
+
+- **Visualization:**  
+  - Both functions automatically generate plots to visualize predictions, uncertainties, and signal-background decomposition (if applicable).  
+  - Use the plots to validate your signal window choice and assess model quality.
+
 
 
 
