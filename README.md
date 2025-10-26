@@ -32,17 +32,26 @@ PoLoN-Process/
 ├── requirements.txt          # List of required Python packages
 └── README.md                 # This file
 ```
+### Data Directory and Example Datasets
 
-#### Data Directory
+All example datasets should be placed in the `data/` folder. You can include `.csv` or `.npy` files. Below is a brief description of the current example datasets provided:
 
-All example datasets should be placed in the `data/` folder.  
-You can include `.csv` or `.npy` files. Example usage:
+| File Name                        | Type   | Description |
+|----------------------------------|--------|-------------|
+| `hour.csv`                        | CSV    | Hourly bike rental counts (synthetic or real-world example) |
+| `unbinned_diphoton_mass.npy`      | NPY    | Unbinned diphoton mass data used for signal-background PoLoN example (Higgs search) |
+
+**Usage Example:**
 
 ```python
 import numpy as np
 
-# Load example dataset
+# Load unbinned diphoton mass dataset
 data = np.load("data/unbinned_diphoton_mass.npy")
+
+# Load bike rental dataset
+import pandas as pd
+bike_data = pd.read_csv("data/hour.csv")
 ```
 ---
 ### Setup
