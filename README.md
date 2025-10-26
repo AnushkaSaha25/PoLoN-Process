@@ -235,7 +235,8 @@ print("Optimized PoLoN hyperparameters:", results["theta_opt"])
 print("Optimized Gaussian signal (A, μ, σ):", results["A_opt"], results["mu_opt"], results["sigma_opt"])
 
 ```
-**Note 1 :** You can provide a **signal window** by selecting the subset of `X` and counts (`t`) where a localized signal is expected. The function will use these points as `X_signal`/`t_signal` and the rest as background (`X_bg`/`t_bg`). This allows flexible modeling of signal vs. background contributions.
+> **Note:** This example demonstrates one way to define a **signal window** for separating background and signal regions in the data. The function itself does not automatically separate background and signal; you need to provide `X_bg`, `t_bg`, `X_signal`, and `t_signal` based on your chosen window.
+
 
 
 
