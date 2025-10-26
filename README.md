@@ -221,6 +221,7 @@ results = predict_signal_background_with_plot(X_bg, t_bg, X_signal, t_signal)
 
 print("Optimized PoLoN parameters:", results["theta_opt"])
 print("Optimized signal (A, μ, σ):", results["A_opt"], results["mu_opt"], results["sigma_opt"])
+```
 
 > **Note:**  
 > This function can be computationally expensive, especially when exploring multiple signal strengths or realizations.  
