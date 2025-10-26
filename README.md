@@ -274,7 +274,7 @@ print("Optimized Gaussian signal (A, μ, σ):", results["A_opt"], results["mu_op
 - **Using Your Own Data:**  
   - Place datasets in the `data/` folder.  
   - Update file paths in the notebook or scripts accordingly. Supported formats include `.csv` and `.npy`.  
-  - Ensure that the data is formatted consistently with the examples (1D arrays for counts and input features).
+  - Ensure that the data is formatted consistently with the examples.
 
 - **Performance Considerations:**  
   - The functions, especially `predict_signal_background_with_plot()`, can be computationally intensive for large datasets or multiple signal realizations.  
