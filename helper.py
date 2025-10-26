@@ -292,12 +292,13 @@ def polon_predict_and_plot(X_train, t_train, X_input=None, theta_init=None, boun
         "most_probable_output": most_probable_output
     }
 
-def predict_signal_background(X_bg, t_bg, X_signal, t_signal,
+def predict_signal_background_with_plot(X_bg, t_bg, X_signal, t_signal,
                               bounds_theta=None, theta_init=None,
                               bounds_gauss=None, trans_params0_scaled=None,
                               X_input=None):
     """
-    General PoLoN + Gaussian signal prediction respecting background vs signal distinction.
+    General PoLoN + Gaussian signal prediction respecting background vs signal distinction,
+    with visualization of total prediction and signal-background decomposition.
 
     Parameters
     ----------
@@ -351,13 +352,13 @@ def predict_signal_background(X_bg, t_bg, X_signal, t_signal,
         trans_params0_scaled = [
             1.0,                    # A
             np.mean(X_signal)/0.1,  # mu (scaled)
-            0.01                     # sigma (scaled)
+            0.01                    # sigma (scaled)
         ]
     if bounds_gauss is None:
         bounds_gauss = [
-            (0.01, 10),                    # A
-            (min(X_signal)/0.1, max(X_signal)/0.1),  # mu
-            (1.0, 50.0)                    # sigma
+            (0.01, 10),                             # A
+            (min(X_signal)/0.1, max(X_signal)/0.1), # mu
+            (1.0, 50.0)                             # sigma
         ]
 
     res_gauss = minimize(
@@ -400,8 +401,41 @@ def predict_signal_background(X_bg, t_bg, X_signal, t_signal,
     gaussian_signal = np.array(gaussian_signal)
 
     # ---- Step 5: Combine PoLoN prediction and Gaussian signal ----
-    poisson_mean = np.exp(mu_values + std_values**2 / 2) + gaussian_signal
+    poisson_mean_bg = np.exp(mu_values + std_values**2 / 2)
+    poisson_mean_total = poisson_mean_bg + gaussian_signal
 
+    # ---- Step 6: Plot results ----
+    fig, axes = plt.subplots(1, 2, figsize=(16, 7))
+
+    # (a) Total prediction vs observed
+    axes[0].scatter(X_bg, t_bg, color="gray", label="Background Data", alpha=0.7)
+    axes[0].scatter(X_signal, t_signal, color="orange", label="Signal Data", alpha=0.7)
+    axes[0].plot(X_input, poisson_mean_total, color="blue", label="Total Prediction (Signal + Background)")
+    axes[0].plot(X_input, poisson_mean_bg, color="green", linestyle="--", label="Background (PoLoN)")
+    axes[0].fill_between(X_input,
+                         poisson_mean_total - np.std(poisson_mean_total)*0.2,
+                         poisson_mean_total + np.std(poisson_mean_total)*0.2,
+                         color="blue", alpha=0.15, label="Approx. Uncertainty")
+    axes[0].set_title("Total PoLoN + Gaussian Signal Prediction")
+    axes[0].set_xlabel("X")
+    axes[0].set_ylabel("Predicted Counts")
+    axes[0].legend()
+    axes[0].grid(alpha=0.5)
+
+    # (b) Signal-background decomposition
+    axes[1].plot(X_input, gaussian_signal, color="red", label="Gaussian Signal")
+    axes[1].plot(X_input, poisson_mean_bg, color="green", linestyle="--", label="PoLoN Background")
+    axes[1].plot(X_input, poisson_mean_total, color="blue", label="Combined Prediction")
+    axes[1].set_title("Signal and Background Decomposition")
+    axes[1].set_xlabel("X")
+    axes[1].set_ylabel("Counts")
+    axes[1].legend()
+    axes[1].grid(alpha=0.5)
+
+    plt.subplots_adjust(wspace=0.15, bottom=0.15)
+    plt.show()
+
+    # ---- Step 7: Return results ----
     return {
         "theta_opt": theta_opt,
         "A_opt": A_opt,
@@ -411,8 +445,8 @@ def predict_signal_background(X_bg, t_bg, X_signal, t_signal,
         "mu_values": mu_values,
         "std_values": std_values,
         "gaussian_signal": gaussian_signal,
-        "poisson_mean": poisson_mean,
+        "poisson_mean_background": poisson_mean_bg,
+        "poisson_mean_total": poisson_mean_total,
         "theta_success": result_theta.success,
         "gauss_success": res_gauss.success
     }
-
