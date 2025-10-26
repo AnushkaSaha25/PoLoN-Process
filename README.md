@@ -25,7 +25,7 @@ This repository provides:
 PoLoN-Process/
 │
 ├── PoLoN.ipynb              # Main Jupyter notebook with training, inference, and plots
-├── data/                     # Example datasets (synthetic + real)
+├── data/                     # Example datasets 
 │   ├── hour.csv
 │   └── unbinned_diphoton_mass.npy
 ├── helper.py       # Supporting Python functions used by the notebook
