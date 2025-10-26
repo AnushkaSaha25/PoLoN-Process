@@ -238,10 +238,10 @@ data_counts, _ = np.histogram(unbinned_data, bins=bin_edges)
 signal_window = (bin_centres >= 120) & (bin_centres <= 140)
 
 # Split data manually into signal and background regions
-X_signal = bin_centres[signal_window]
+X_signal = bin_centres[signal_window]/1000
 t_signal = data_counts[signal_window]
 
-X_bg = bin_centres[~signal_window]
+X_bg = bin_centres[~signal_window]/1000
 t_bg = data_counts[~signal_window]
 
 # --- Run PoLoN prediction with background and signal inputs ---
