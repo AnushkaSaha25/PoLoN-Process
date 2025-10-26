@@ -32,6 +32,18 @@ PoLoN-Process/
 ├── requirements.txt          # List of required Python packages
 └── README.md                 # This file
 ```
+
+#### Data Directory
+
+All example datasets should be placed in the `data/` folder.  
+You can include `.csv` or `.npy` files. Example usage:
+
+```python
+import numpy as np
+
+# Load example dataset
+data = np.load("data/unbinned_diphoton_mass.npy")
+```
 ---
 ### Setup
 To run the project, it is recommended to use Python 3.9 or higher.  
@@ -243,6 +255,12 @@ print("Optimized Gaussian signal (A, μ, σ):", results["A_opt"], results["mu_op
 > For large-scale experiments, **parallelization (e.g., via Amarel job submission or HPC clusters)** is recommended.  
 > The function itself is defined in `helper.py` for modular reuse and does not appear directly in the Jupyter notebook.
 ---
+#### Tips for Users
+
+- You can replace the example datasets with your own data files in `data/`.
+- Use the function polon_predict_and_plot() or predict_signal_background_with_plot() depending on your needs, if you want to use the model for the prediction perpose for a smoothly varying function use the first one, if there is a localized signal whose approximate position is known, use the second function- this will also give info about the properties of the signal
+- The PoLoN functions are modular; importing `helper.py` is sufficient to access all functionality.  
+- For large datasets or multiple signal realizations, consider using HPC or parallel execution.
 
 
 
