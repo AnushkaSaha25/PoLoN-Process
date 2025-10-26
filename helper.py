@@ -334,7 +334,7 @@ def predict_signal_background_with_plot(X_bg, t_bg, X_signal, t_signal,
 
     # ---- Step 1: Optimize PoLoN hyperparameters using background only ----
     if bounds_theta is None:
-        bounds_theta = [(0.0001, 2), (0.01, 50.0)]
+        bounds_theta = [(0.0001, 30), (0.01, 50.0)]
     if theta_init is None:
         theta_init = np.array([0.05, 20.0], dtype=np.float64)
 
