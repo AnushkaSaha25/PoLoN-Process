@@ -67,7 +67,7 @@ pip install -r requirements.txt
 Then, launch the Jupyter notebook:
 
 ```bash
-jupyter notebook PoLoN.ipynb
+jupyter notebook PoLoN_predictive.ipynb
 ```
 
 ---
