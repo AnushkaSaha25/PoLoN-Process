@@ -41,7 +41,7 @@ All example datasets should be placed in the `data/` folder. You can include `.c
 
 | File Name                        | Type   | Description |
 |----------------------------------|--------|-------------|
-| `hour.csv`                        | CSV    | Hourly bike rental counts (synthetic or real-world example) |
+| `hour.csv`                        | CSV    | Hourly bike rental counts (real-world example) |
 | `unbinned_diphoton_mass.npy`      | NPY    | Unbinned diphoton mass data used for signal-background PoLoN example (Higgs search) |
 
 **Usage Example:**
