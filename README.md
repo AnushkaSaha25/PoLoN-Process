@@ -25,8 +25,8 @@ This repository provides:
 PoLoN-Process/
 │
 ├── Juputer_nootbook/                      # Main Jupyter notebooks with training, inference, and plots
-│   ├── hour.csv
-│   └── unbinned_diphoton_mass.npy            
+│   ├── PoLoN_predictive.ipynb             # the predictive methode, equivalent to the function polon_predict_and_plot()
+│   └── PoLoN_signal_background.ipynb      # the signal extraction method, equivalent to the function predict_signal_background_with_plot()        
 ├── data/                     # Example datasets 
 │   ├── hour.csv
 │   └── unbinned_diphoton_mass.npy
