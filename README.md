@@ -257,8 +257,10 @@ print("Optimized Gaussian signal (A, μ, σ):", results["A_opt"], results["mu_op
 
 
 
+> **Note 2 :** This approach relies on the assumption that the signal is weak relative to the background. We plan to investigate the strong-signal regime in future work.
 
-> **Note 2 :**  
+
+> **Note 3 :**  
 > This function can be computationally expensive, especially when exploring multiple signal strengths or realizations.  
 > For large-scale experiments, **parallelization (e.g., via Amarel job submission or HPC clusters)** is recommended.  
 > The function itself is defined in `helper.py` for modular reuse and does not appear directly in the Jupyter notebook.
