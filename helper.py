@@ -136,18 +136,15 @@ def total_loglik_and_hessian(X_bg, t_bg, X_signal, t_signal, theta, A, mu, sigma
     lambda_n_star, _ = newton_optimization(t_bg, Cn)
     loglik_bg, H_bg = background_loglik_and_hessian(Cn, X_bg, t_bg, lambda_n_star, A, mu, sigma)
     loglik_signal, H_signal = signal_loglik_and_hessian(X_bg, t_signal, X_signal, lambda_n_star, theta, A, mu, sigma)
-    total_loglik = loglik_bg + loglik_signal
-    H_total = H_bg - H_signal
-    det_term = -0.5 * log_det_cholesky(H_total)
-    tot_log_lik = total_loglik + det_term
-    return loglik_bg, loglik_signal, det_term, tot_log_lik
+    tot_log_lik = loglik_bg + loglik_signal
+    return loglik_bg, loglik_signal, tot_log_lik
 
 def neg_total_loglik_scaled(params_scaled, X_bg, t_bg, X_signal, t_signal, theta):
     A_scaled, mu_scaled, sigma_scaled = params_scaled
     A = A_scaled * 100
     mu = mu_scaled * 0.1
     sigma = sigma_scaled * 0.001
-    _, _, _, tot_log_lik = total_loglik_and_hessian(X_bg, t_bg, X_signal, t_signal, theta, A, mu, sigma)
+    _, _,tot_log_lik = total_loglik_and_hessian(X_bg, t_bg, X_signal, t_signal, theta, A, mu, sigma)
     return -tot_log_lik
 
 def polon_predict_and_plot(X_train, t_train, X_input=None, theta_init=None, bounds=None, n_samples=5000):
