@@ -108,8 +108,9 @@ def signal_loglik_and_hessian(X_bg, t_signal, X_signal, lambda_n_star, theta, A,
     for X_new, t in zip(X_signal, t_signal):
         K = compute_K(X_bg, X_new, *theta)
         L = K.T @ invCn
+        c = rbf_kernel_extended(X_new, X_new, *theta) + 1e-5
         mean_pred = L @ lambda_n_star
-        var_pred = abs(L @ invH_gp @ L.T + 1e-5)
+        var_pred = abs(c - L @ K + L @ invH_gp @ L.T + 1e-5)
         mean_log = mean_pred + var_pred / 2
         g = gaussian_bump(X_new, A, mu, sigma)
         lam = np.exp(mean_log) + g
