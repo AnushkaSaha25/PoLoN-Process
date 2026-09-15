@@ -37,7 +37,7 @@ PoLoN-Process/
 ```
 ---
 
-```
+
 ### Implementation and Usage
 
 The repository provides two complementary ways to work with the PoLoN framework.
