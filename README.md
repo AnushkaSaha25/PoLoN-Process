@@ -24,7 +24,7 @@ This repository provides:
 ```
 PoLoN-Process/
 │
-├── notebooks/
+├── notebook/
 │   ├── PoLoN_predictive.ipynb
 │   └── PoLoN_signal_background.ipynb
 ├── data/
