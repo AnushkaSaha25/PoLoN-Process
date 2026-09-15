@@ -36,6 +36,37 @@ PoLoN-Process/
 └── README.md
 ```
 ---
+
+```
+### Implementation and Usage
+
+The repository provides two complementary ways to work with the PoLoN framework.
+
+#### Reusable implementation
+
+The main reusable PoLoN functions are provided in `helper.py`. These functions allow users to apply the PoLoN predictive and signal-background models to their own count data without reproducing the individual calculations manually.
+
+The high-level functions are:
+
+- `polon_predict_and_plot()` — PoLoN predictive modeling for count data.
+- `predict_signal_background_with_plot()` — signal-background modeling when the signal region is specified.
+
+The lower-level functions in `helper.py` implement the individual components required by these workflows, including the covariance matrix, kernel calculations, Laplace optimization, predictive quantities, and signal/background likelihood calculations.
+
+#### Detailed notebook demonstrations
+
+The Jupyter notebooks provide a more detailed view of the underlying calculations. Rather than only calling the high-level functions from `helper.py`, the notebooks expose the lower-level steps of the implementation.
+
+This makes the notebooks useful for users who want to:
+
+- understand how the PoLoN model is constructed,
+- inspect the individual computational steps,
+- modify parts of the calculation, or
+- reproduce the examples in the paper.
+
+Thus, `helper.py` is intended as the reusable implementation, while the notebooks provide a transparent demonstration of how the implementation works.
+
+
 ### Data Directory and Example Datasets
 
 All example datasets should be placed in the `data/` folder. You can include `.csv` or `.npy` files. Below is a brief description of the current example datasets provided:
