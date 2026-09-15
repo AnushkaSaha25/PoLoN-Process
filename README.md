@@ -306,9 +306,10 @@ print("Optimized Gaussian signal (A, μ, σ):", results["A_opt"], results["mu_op
 ---
 ### Tips & Best Practices
 
-- **Choosing the Right Function:**  
-  - Use `polon_predict_and_plot()` for smooth, background-dominated count data or general PoLoN predictions.  
-  - Use `predict_signal_background_with_plot()` when there is a **localized signal** whose approximate position is known. This function provides additional information about the signal’s properties (amplitude, mean location, and width).
+- Use `polon_predict_and_plot()` when the primary goal is PoLoN-based count-data prediction.
+- Use `predict_signal_background_with_plot()` when a localized signal is present and the signal region can be specified in advance.
+- Use the lower-level notebook calculations when you want to inspect or modify individual steps of the implementation.
+- For large datasets or repeated analyses, consider the computational cost of the Laplace approximation and hyperparameter optimization.
 
 - **Defining a Signal Window:**  
   - The signal window is **user-defined**. You need to provide `X_bg`, `t_bg` for background and `X_signal`, `t_signal` for the signal region.  
