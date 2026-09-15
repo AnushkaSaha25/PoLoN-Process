@@ -135,8 +135,7 @@ The corresponding notebook, `PoLoN_predictive.ipynb`, provides a lower-level dem
 - Optimizes kernel hyperparameters via log-likelihood maximization.
 - Predicts the **expected counts** (Poisson mean) and **most probable counts** (Poisson mode) for new input points.
 - Computes **Monte Carlo-based 95% confidence intervals** for predicted counts.
-- Generates plots showing the predictive mean, confidence intervals, and most probable outputs.
-> **Note:** The main functions are defined in `helper.py` for future reuse and do not appear directly in the Jupyter notebook.  
+- Generates plots showing the predictive mean, confidence intervals, and most probable outputs. 
 > This modular structure allows users to reuse functions without modifying notebook code.
 
 ##### **Inputs**
@@ -302,7 +301,6 @@ print("Optimized Gaussian signal (A, μ, σ):", results["A_opt"], results["mu_op
 > **Note 3 :**  
 > This function can be computationally expensive, especially when exploring multiple signal strengths or realizations.  
 > For large-scale experiments, **parallelization (e.g., via Amarel job submission or HPC clusters)** is recommended.  
-> The function itself is defined in `helper.py` for modular reuse and does not appear directly in the Jupyter notebook.
 ---
 ### Tips & Best Practices
 
