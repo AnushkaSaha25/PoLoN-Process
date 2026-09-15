@@ -257,7 +257,7 @@ When executed, this function automatically generates **two plots**:
    - Green dashed: background component  
    - Blue: total PoLoN model output  
 
-These visualizations clearly demonstrate how the PoLoN process captures both the stochastic background and the localized signal within a single probabilistic framework.
+These visualizations show the fitted background, localized signal component, and their combined contribution to the predicted count rate.
 
 
 ##### **Example: Using `predict_signal_background_with_plot` with a signal window**
