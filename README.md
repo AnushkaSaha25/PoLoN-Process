@@ -106,7 +106,7 @@ jupyter notebook PoLoN_predictive.ipynb
 
 ---
 
-#### Helper Function Reference
+#### Core Functions in `helper.py`
 
 These helper functions, defined in `helper.py`, support the main PoLoN prediction workflow:
 
