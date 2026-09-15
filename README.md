@@ -319,8 +319,7 @@ print("Optimized Gaussian signal (A, μ, σ):", results["A_opt"], results["mu_op
   - For heavy computations, consider **parallel execution**, HPC clusters, or job submission systems like Amarel.
 
 - **Modularity and Reusability:**  
-  - All PoLoN functions are defined in `helper.py`.  
-  - Importing this module is sufficient to access the core functionality; the notebook itself does not need to be modified for reusing the code.
+  The reusable PoLoN functions are defined in `helper.py`. More specialized or computationally intensive workflows may be provided separately as standalone scripts.
 
 - **Visualization:**  
   - Both functions automatically generate plots to visualize predictions, uncertainties, and signal-background decomposition (if applicable).  
