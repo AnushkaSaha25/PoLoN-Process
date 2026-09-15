@@ -186,10 +186,18 @@ print("95% confidence intervals:", list(zip(lower_ci, upper_ci)))
 
 ```
 ---
-#### Function 2: `predict_signal_background_with_plot`
 
-This function models count data using the **PoLoN (Poisson–Lognormal)** process, which inherently represents both **background** and **signal** components within a unified probabilistic framework.  
-It automatically fits the model, optimizes parameters, and visualizes the **PoLoN prediction** along with the **signal–background decomposition**.
+#### 2. Signal + Background Modeling
+
+The signal-background extension is implemented in the reusable function:
+
+`predict_signal_background_with_plot()`
+
+This workflow is intended for cases where the signal region is specified in advance. The user provides the background and signal regions separately through `X_bg`, `t_bg`, `X_signal`, and `t_signal`.
+
+The corresponding notebook, `PoLoN_signal_background.ipynb`, provides a lower-level demonstration of the calculation, including the construction of the background and signal likelihoods and the optimization of the signal parameters.
+
+The function does not automatically determine the signal location. The signal region must be specified by the user.
 
 This approach is particularly relevant in **physics applications** (e.g., Higgs Boson searches), where observed data are composed of a smooth stochastic background and a localized signal peak — both naturally represented within the PoLoN process.
 
