@@ -311,10 +311,6 @@ print("Optimized Gaussian signal (A, μ, σ):", results["A_opt"], results["mu_op
 - Use the lower-level notebook calculations when you want to inspect or modify individual steps of the implementation.
 - For large datasets or repeated analyses, consider the computational cost of the Laplace approximation and hyperparameter optimization.
 
-- **Defining a Signal Window:**  
-  - The signal window is **user-defined**. You need to provide `X_bg`, `t_bg` for background and `X_signal`, `t_signal` for the signal region.  
-  - This approach allows you to explore different signal regions without modifying the function itself.
-
 - **Using Your Own Data:**  
   - Place datasets in the `data/` folder.  
   - Update file paths in the notebook or scripts accordingly. Supported formats include `.csv` and `.npy`.  
