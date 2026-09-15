@@ -102,13 +102,7 @@ Then, launch the Jupyter notebook:
 jupyter notebook PoLoN_predictive.ipynb
 ```
 
----
 
-
-### Usage
-
-This repository provides tools for **training, prediction, and visualization** of count data using the PoLoN (Poisson Log-Normal) process.  
-The main workflow is implemented through two functions — **`polon_predict_and_plot`** and **`predict_signal_background`** — both of which leverage helper functions defined in `helper.py`.
 
 ---
 
@@ -125,10 +119,15 @@ These helper functions, defined in `helper.py`, support the main PoLoN predictio
 Other internal utilities handle Hessians, Cholesky decompositions, Gaussian bumps, and log-likelihood contributions.
 
 ---
+#### 1. PoLoN Predictive Modeling
 
-#### Function 1: `polon_predict_and_plot`
+The basic PoLoN predictive workflow is implemented in the reusable function:
 
-This function models integer count data using the **PoLoN framework** without explicitly separating signal and background components.  
+`polon_predict_and_plot()`
+
+This function can be used directly from `helper.py` while modelling integer count data using the **PoLoN framework** without explicitly separating signal and background components.  
+
+The corresponding notebook, `PoLoN_predictive.ipynb`, provides a lower-level demonstration of the same workflow, showing the individual steps used to construct the covariance matrix, obtain the Laplace approximation, and calculate the predictive distribution.
 
 ##### **Function Overview**
 
