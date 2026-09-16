@@ -6,6 +6,8 @@ import pandas as pd
 from scipy.optimize import minimize
 from scipy.stats import multivariate_normal, poisson
 
+def sigmoid(x):
+    return 1.0 / (1.0 + np.exp(-x))
 
 def compute_M(t, lambda_vector):
     M = t - np.exp(lambda_vector)
