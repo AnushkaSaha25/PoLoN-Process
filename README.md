@@ -385,7 +385,7 @@ This example is intended to demonstrate how the PoLoN framework can be used when
   - Ensure that the data is formatted consistently with the examples.
 
 - **Performance Considerations:**  
-  - The functions, especially `predict_signal_background_with_plot()`, can be computationally intensive for large datasets or multiple signal realizations.  
+  - The functions, especially `predict_signal_background_with_plot()` and `unknown_location_signal_search()`, can be computationally intensive for large datasets or multiple signal realizations.  
   - For heavy computations, consider **parallel execution**, HPC clusters, or job submission systems like Amarel.
 
 - **Modularity and Reusability:**  
