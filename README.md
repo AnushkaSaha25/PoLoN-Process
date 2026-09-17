@@ -305,7 +305,7 @@ print("Optimized Gaussian signal (A, μ, σ):", results["A_opt"], results["mu_op
 > For large-scale experiments, **parallelization (e.g., via Amarel job submission or HPC clusters)** is recommended.  
 ---
 
-## 3. Unknown Signal Location Search
+#### 3. Unknown Signal Location Search
 
 In many applications, the location of a localized signal is not known in advance. To address this, the repository provides a sliding-window signal-search procedure that searches for candidate signal regions directly from the observed count data.
 
