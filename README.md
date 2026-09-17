@@ -319,7 +319,7 @@ scripts/unknown_location_signal_search_example.py
 
 The script generates a synthetic Poisson count dataset containing a localized Gaussian signal and then performs the unknown-location signal search. The signal strength and signal location used when generating the synthetic dataset are not provided to the search procedure; they are used only to construct the test data.
 
-### Running the example
+##### Running the example
 
 From the repository root, run:
 
@@ -366,8 +366,7 @@ For each candidate window, the search records the fitted signal parameters, back
 - `theta0`, `theta1`: PoLoN background hyperparameters
 - `ll_tot`: likelihood of the fitted signal-plus-background model
 
-The script also calculates likelihood-weighted estimates across the candidate windows. The weighting gives greater contribution to candidate windows with larger values of `ll_tot`, while the likelihoods are shifted by the maximum likelihood before exponentiation for numerical stability.
-
+The script also calculates likelihood-weighted estimates across the candidate windows. The weighting gives greater contribution to candidate windows with larger values of `ll_tot`.
 The resulting likelihood-weighted estimates provide a single estimate of the signal amplitude, location, width, and PoLoN background parameters from the unknown-location search.
 
 This example is intended to demonstrate how the PoLoN framework can be used when the signal location is not known *a priori*.
