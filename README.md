@@ -375,6 +375,7 @@ This example is intended to demonstrate how the PoLoN framework can be used when
 
 - Use `polon_predict_and_plot()` when the primary goal is PoLoN-based count-data prediction.
 - Use `predict_signal_background_with_plot()` when a localized signal is present and the signal region can be specified in advance.
+- Use `unknown_location_signal_search()` when the signal location is not known in advance and a sliding-window search is desired.
 - Use the lower-level notebook calculations when you want to inspect or modify individual steps of the implementation.
 - For large datasets or repeated analyses, consider the computational cost of the Laplace approximation and hyperparameter optimization.
 
