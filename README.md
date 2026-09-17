@@ -98,10 +98,10 @@ Install all required dependencies using the `requirements.txt` file:
 ```bash
 pip install -r requirements.txt
 ```
-Then, launch the Jupyter notebook:
+After installing the dependencies, the notebooks can be launched with:
 
 ```bash
-jupyter notebook PoLoN_predictive.ipynb
+jupyter notebook
 ```
 
 
