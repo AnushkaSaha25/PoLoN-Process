@@ -304,6 +304,74 @@ print("Optimized Gaussian signal (A, μ, σ):", results["A_opt"], results["mu_op
 > This function can be computationally expensive, especially when exploring multiple signal strengths or realizations.  
 > For large-scale experiments, **parallelization (e.g., via Amarel job submission or HPC clusters)** is recommended.  
 ---
+
+## 3. Unknown Signal Location Search
+
+In many applications, the location of a localized signal is not known in advance. To address this, the repository provides a sliding-window signal-search procedure that searches for candidate signal regions directly from the observed count data.
+
+The method divides the input range into overlapping candidate windows. For each window, the points inside the window are treated as a possible signal region, while the remaining points are used to estimate the PoLoN background model. A Gaussian signal component is then fitted together with the background within the candidate region. By repeating this procedure across the input range, the method can estimate the signal parameters without requiring the signal location to be specified beforehand.
+
+The complete runnable example is provided in:
+
+```text
+scripts/unknown_location_signal_search_example.py
+```
+
+The script generates a synthetic Poisson count dataset containing a localized Gaussian signal and then performs the unknown-location signal search. The signal strength and signal location used when generating the synthetic dataset are not provided to the search procedure; they are used only to construct the test data.
+
+### Running the example
+
+From the repository root, run:
+
+```bash
+python scripts/unknown_location_signal_search_example.py
+```
+
+The example demonstrates the complete workflow:
+
+1. Generate synthetic Poisson count data containing a localized Gaussian signal.
+2. Scan the input range using a sliding window.
+3. Fit the PoLoN background model using the data outside each candidate window.
+4. Fit a Gaussian signal together with the background within each candidate window.
+5. Record the fitted signal and background parameters and the likelihood for each candidate window.
+6. Combine the candidate-window results using likelihood-weighted parameter estimates.
+
+The main search function is:
+
+```python
+unknown_signal_search(
+    X,
+    t,
+    std_gaussian=0.004,
+    window_size=20,
+    penalty=2000
+)
+```
+
+where:
+
+| Parameter | Description |
+|---|---|
+| `X` | Input locations |
+| `t` | Observed Poisson count data |
+| `std_gaussian` | Initial Gaussian signal width used in the signal model |
+| `window_size` | Number of unique input points included in each candidate window |
+| `penalty` | Penalty used during the background hyperparameter optimization |
+
+For each candidate window, the search records the fitted signal parameters, background parameters, and corresponding likelihood values. The resulting parameters include:
+
+- `A_hat`: estimated signal amplitude
+- `mu_hat`: estimated signal location
+- `sigma_hat`: estimated signal width
+- `theta0`, `theta1`: PoLoN background hyperparameters
+- `ll_tot`: likelihood of the fitted signal-plus-background model
+
+The script also calculates likelihood-weighted estimates across the candidate windows. The weighting gives greater contribution to candidate windows with larger values of `ll_tot`, while the likelihoods are shifted by the maximum likelihood before exponentiation for numerical stability.
+
+The resulting likelihood-weighted estimates provide a single estimate of the signal amplitude, location, width, and PoLoN background parameters from the unknown-location search.
+
+This example is intended to demonstrate how the PoLoN framework can be used when the signal location is not known *a priori*.
+
 ### Tips & Best Practices
 
 - Use `polon_predict_and_plot()` when the primary goal is PoLoN-based count-data prediction.
