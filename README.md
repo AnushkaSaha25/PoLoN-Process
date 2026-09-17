@@ -28,7 +28,7 @@ PoLoN-Process/
 │   ├── PoLoN_predictive.ipynb
 │   └── PoLoN_signal_background.ipynb
 ├── scripts/
-│   └── unknown_location_signal_search_example.py
+│   └── unknown_location_signal_search.py
 ├── data/
 │   ├── hour.csv
 │   └── unbinned_diphoton_mass.npy
