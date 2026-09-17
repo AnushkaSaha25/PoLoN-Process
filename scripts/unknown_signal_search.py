@@ -1,9 +1,7 @@
-import itertools
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
-from scipy.stats import multivariate_normal, poisson
+from scipy.stats import multivariate_normal
 
 from helper import *
 
@@ -60,32 +58,6 @@ def generate_data(
     """
     Generate synthetic Poisson count data containing
     an exponentially decreasing background and a Gaussian signal.
-
-    Parameters
-    ----------
-    signal_strength : float
-        True amplitude of the Gaussian signal.
-
-    n_instances_per_X : int
-        Number of Poisson observations generated at each X value.
-
-    seed : int
-        Random seed.
-
-    signal_location : float
-        True location of the Gaussian signal.
-
-    std_gaussian : float, optional
-        True width of the Gaussian signal.
-        Default is 0.004.
-
-    Returns
-    -------
-    X : ndarray
-        Expanded X values.
-
-    t : ndarray
-        Generated Poisson count observations.
     """
 
     np.random.seed(seed)
@@ -144,39 +116,16 @@ def unknown_signal_search(
     Search for a Gaussian signal whose location and amplitude
     are unknown.
 
-    Parameters
-    ----------
-    X : ndarray
-        Observed X values.
-
-    t : ndarray
-        Observed Poisson counts.
-
-    std_gaussian : float, optional
-        Gaussian signal width used in the signal model.
-        Default is 0.004.
-
-    window_size : int, optional
-        Number of unique X values included in each sliding window.
-        Default is 20.
-
-    penalty : float, optional
-        Penalty parameter used in the background hyperparameter
-        optimization. Default is 2000.
-
-    Returns
-    -------
-    results : pandas.DataFrame
-        Results from every sliding-window position.
+    Returns a DataFrame containing the fitted parameters
+    for every sliding-window position.
     """
 
-    # Get unique X values directly from the supplied data
     X_unique = np.unique(X)
 
     results = []
 
     # --------------------------------------------------------
-    # Loop over all possible sliding windows
+    # Scan over all possible windows
     # --------------------------------------------------------
 
     for i in range(len(X_unique) - window_size + 1):
@@ -228,9 +177,8 @@ def unknown_signal_search(
         #
         # The signal amplitude and location are unknown.
         #
-        # initial_amplitude is only a numerical starting value
-        # for the optimizer; it is NOT treated as the known
-        # signal strength.
+        # initial_amplitude is only the starting point for
+        # the numerical optimizer.
         # ----------------------------------------------------
 
         initial_amplitude = 250
@@ -289,7 +237,7 @@ def unknown_signal_search(
         # Background-only likelihood
         # ----------------------------------------------------
 
-        loglik_bg, _ = signal_loglik_and_hessian(
+        loglik_bg = signal_loglik_and_hessian(
             X_bg,
             t_signal,
             X_signal,
@@ -304,7 +252,7 @@ def unknown_signal_search(
         # Signal + background likelihood
         # ----------------------------------------------------
 
-        loglik_signal, _ = signal_loglik_and_hessian(
+        loglik_signal = signal_loglik_and_hessian(
             X_bg,
             t_signal,
             X_signal,
@@ -358,8 +306,159 @@ def unknown_signal_search(
             f"center={center:.5f}"
         )
 
+    return pd.DataFrame(results)
+
+
+# ============================================================
+# 5. LIKELIHOOD-WEIGHTED PARAMETER ESTIMATES
+# ============================================================
+
+def weighted_parameter_estimates(df):
+    """
+    Calculate likelihood-weighted averages of the fitted
+    signal and background parameters.
+    """
+
+    required_columns = [
+        "ll_tot",
+        "A_hat",
+        "mu_hat",
+        "sigma_hat",
+        "theta0",
+        "theta1"
+    ]
+
+    df = df[required_columns].copy()
+
+    df = df.dropna()
+
+    if len(df) == 0:
+        print("No valid rows available for weighted averaging.")
+        return None
+
     # --------------------------------------------------------
-    # Return all windows as a DataFrame
+    # Calculate likelihood weights
     # --------------------------------------------------------
 
-    return pd.DataFrame(results)
+    ll_tot = df["ll_tot"].to_numpy(dtype=float)
+
+    max_ll = np.max(ll_tot)
+
+    weights = np.exp(ll_tot - max_ll)
+
+    weight_sum = np.sum(weights)
+
+    if not np.isfinite(weight_sum) or weight_sum == 0:
+        print("Invalid likelihood weights.")
+        return None
+
+    # --------------------------------------------------------
+    # Weighted averages
+    # --------------------------------------------------------
+
+    A_hat_avg = (
+        np.sum(
+            weights * df["A_hat"].to_numpy(dtype=float)
+        )
+        / weight_sum
+    )
+
+    mu_hat_avg = (
+        np.sum(
+            weights * df["mu_hat"].to_numpy(dtype=float)
+        )
+        / weight_sum
+    )
+
+    sigma_hat_avg = (
+        np.sum(
+            weights * df["sigma_hat"].to_numpy(dtype=float)
+        )
+        / weight_sum
+    )
+
+    theta0_avg = (
+        np.sum(
+            weights * df["theta0"].to_numpy(dtype=float)
+        )
+        / weight_sum
+    )
+
+    theta1_avg = (
+        np.sum(
+            weights * df["theta1"].to_numpy(dtype=float)
+        )
+        / weight_sum
+    )
+
+    estimates = {
+        "A_hat": A_hat_avg,
+        "mu_hat": mu_hat_avg,
+        "sigma_hat": sigma_hat_avg,
+        "theta0": theta0_avg,
+        "theta1": theta1_avg
+    }
+
+    return estimates
+
+
+# ============================================================
+# 6. EXAMPLE
+# ============================================================
+
+if __name__ == "__main__":
+
+    # --------------------------------------------------------
+    # Example parameters
+    # --------------------------------------------------------
+
+    signal_strength = 150
+    n_instances_per_X = 1
+    seed = 1
+    signal_location = 0.135
+    std_gaussian = 0.004
+
+    # --------------------------------------------------------
+    # Generate synthetic data
+    # --------------------------------------------------------
+
+    X, t = generate_data(
+        signal_strength=signal_strength,
+        n_instances_per_X=n_instances_per_X,
+        seed=seed,
+        signal_location=signal_location,
+        std_gaussian=std_gaussian
+    )
+
+    # --------------------------------------------------------
+    # Run unknown-location signal search
+    # --------------------------------------------------------
+
+    df = unknown_signal_search(
+        X=X,
+        t=t,
+        std_gaussian=std_gaussian,
+        window_size=20,
+        penalty=2000
+    )
+
+    # --------------------------------------------------------
+    # Calculate likelihood-weighted estimates
+    # --------------------------------------------------------
+
+    estimates = weighted_parameter_estimates(df)
+
+    # --------------------------------------------------------
+    # Print results
+    # --------------------------------------------------------
+
+    if estimates is not None:
+
+        print("\nLikelihood-weighted parameter estimates")
+        print("----------------------------------------")
+
+        print(f"A_hat     = {estimates['A_hat']:.6f}")
+        print(f"mu_hat    = {estimates['mu_hat']:.6f}")
+        print(f"sigma_hat = {estimates['sigma_hat']:.6f}")
+        print(f"theta0    = {estimates['theta0']:.6f}")
+        print(f"theta1    = {estimates['theta1']:.6f}")
