@@ -7,7 +7,7 @@ The **Poisson Log-Normal (PoLoN) process** combines the flexibility of Gaussian 
 
 This repository provides:  
 - Core implementations of PoLoN for predicting expected counts and most probable outcomes.  
-- A variant of the prediction function that incorporates **signal + background decomposition**, useful for applications like particle physics where separating signal from background noise is important.  
+- Signal + background modeling with either a user-specified signal region or a sliding-window search when the signal location is unknown.  
 - Synthetic experiments and real-world examples, such as Higgs Boson signal analysis and bike rental demand prediction.  
 
 ---
