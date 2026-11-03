@@ -65,7 +65,7 @@ rng = np.random.default_rng(0)
 
 # ---------------------------------------------------------------- 1. PoLoN
 x = np.linspace(0.1, 0.16, 10)
-alpha = 40 * np.exp(-30.6 * (x - 0.1))              # true rate, 40 -> 6
+alpha = 40 * np.exp(-30.6 * (x - 0.1))              
 X_train = np.repeat(x, 3)                            # 3 replicates at each input
 t_train = rng.poisson(np.repeat(alpha, 3))
 
