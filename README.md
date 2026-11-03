@@ -51,8 +51,6 @@ pip install -r requirements.txt
 
 The dependencies are numpy, scipy, matplotlib and pandas. matplotlib is only needed for plotting; pandas is used by the bike-rental example and the search script.
 
-> **Note:** numpy 2.0.0 is excluded in `requirements.txt`. It changes the shape of the inverse index returned by `np.unique(..., axis=0, return_inverse=True)`, which `aggregate_replicates` relies on (fixed in numpy 2.0.1).
-
 ---
 
 ### Quick Start
