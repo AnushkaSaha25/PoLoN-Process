@@ -3,7 +3,7 @@
 ### Overview
 Modeling datasets of integer counts is crucial in physics and other scientific disciplines, where measurements involve discrete, non-negative quantities. Traditional approaches such as Poisson regression often struggle to capture complex, non-linear relationships.  
 
-The **Poisson Log-Normal (PoLoN) process** combines the flexibility of Gaussian Processes with the Poisson-lognormal distribution to model integer count data accurately.  
+The Poisson Log-Normal (PoLoN) process models the Poisson rate as the exponential of a latent Gaussian process and propagates the uncertainty in that latent rate through the Poisson likelihood. This gives a closed-form predictive mean for integer count data, with the most probable count and the 95% interval obtained by Monte Carlo sampling.
 
 This repository provides:  
 - Core implementations of PoLoN for predicting expected counts and most probable outcomes.  
