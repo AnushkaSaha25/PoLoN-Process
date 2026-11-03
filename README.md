@@ -95,8 +95,6 @@ print("Optimisers converged:", res["theta_success"], res["signal_success"])
 print("Most probable counts (first 5 grid points):", res["most_probable_output"][:5])
 ```
 
-The Laplace solver in `helpers.py` takes conservative damped Newton steps, so fits take from seconds to a few minutes; expect a few minutes in total. Figures open in windows; close each one to continue.
-
 ---
 
 ### Data Directory and Example Datasets
