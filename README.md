@@ -1,25 +1,27 @@
 # Poisson Log-Normal (PoLoN) Process for Non-Parametric Prediction of Count Data
 
 ### Overview
-Modeling datasets of integer counts is crucial in physics and other scientific disciplines, where measurements involve discrete, non-negative quantities. Traditional approaches such as Poisson regression often struggle to capture complex, non-linear relationships.  
+Modeling datasets of integer counts is crucial in physics and other scientific disciplines, where measurements involve discrete, non-negative quantities. Traditional approaches such as Poisson regression often struggle to capture complex, non-linear relationships.
 
-The Poisson Log-Normal (PoLoN) process models the Poisson rate as the exponential of a latent Gaussian process and propagates the uncertainty in that latent rate through the Poisson likelihood. This gives a closed-form predictive mean for integer count data, with the most probable count and the 95% interval obtained by Monte Carlo sampling.
+The **Poisson Log-Normal (PoLoN) process** models the Poisson rate as the exponential of a latent Gaussian process and propagates the uncertainty in that latent rate through the Poisson likelihood. This gives a closed-form predictive mean for integer count data, with the most probable count and the 95% interval obtained by Monte Carlo sampling.
 
-This repository provides:  
-- Core implementations of PoLoN for predicting expected counts and most probable outcomes.  
-- Signal + background modeling with either a user-specified signal region or a sliding-window search when the signal location is unknown.  
-- Synthetic experiments and real-world examples, such as Higgs Boson signal analysis and bike rental demand prediction.  
+This repository provides:
+- Core implementations of PoLoN for predicting expected counts and most probable outcomes.
+- Signal + background modeling (PoLoN-SB) with either a user-specified signal region or a sliding-window search when the signal location is unknown.
+- Real-data examples (Higgs diphoton mass spectrum, bike rental demand) and small synthetic examples.
 
 ---
 
 ### Key Features
-- Non-parametric model for count data prediction  
-- Combines Poisson likelihood with Gaussian Process prior  
-- Handles discrete, non-negative data  
-- Captures correlations through kernel-based inference  
-- Supports both synthetic and real-world datasets  
+- Gaussian Process prior on the latent log-rate of a Poisson likelihood
+- Non-parametric prediction of integer counts: expected counts, most probable counts and 95% intervals
+- Handles discrete, non-negative data
+- Replicate-aware: repeated observations at the same input are aggregated, so the covariance matrix is M × M over the M unique inputs rather than over every observation
+- Signal + background decomposition: a localized Gaussian signal on top of a smooth GP background
+- Sliding-window search for a localized signal of unknown position
 
 ---
+
 ### Repository Structure
 ```
 PoLoN-Process/
@@ -27,9 +29,6 @@ PoLoN-Process/
 ├── data/
 │   ├── hour.csv
 │   └── unbinned_diphoton_mass.npy
-├── notebook/
-│   ├── PoLoN_predictive.ipynb
-│   └── PoLoN_signal_background.ipynb
 ├── scripts/
 │   └── unknown_location_signal_search.py
 ├── LICENSE
@@ -37,185 +36,217 @@ PoLoN-Process/
 ├── helpers.py
 └── requirements.txt
 ```
+
+- `helpers.py` contains all reusable functions (see [Functions in `helpers.py`](#functions-in-helperspy)).
+- `scripts/unknown_location_signal_search.py` runs the sliding-window search for a signal of unknown location.
+
 ---
 
+### Setup
+Python 3.8 or higher is supported (tested on 3.8 and 3.12). Install the dependencies with:
 
-### Implementation and Usage
+```bash
+pip install -r requirements.txt
+```
 
-The repository provides two complementary ways to work with the PoLoN framework.
+The dependencies are numpy, scipy, matplotlib and pandas. matplotlib is only needed for plotting; pandas is used by the bike-rental example and the search script.
 
-#### Reusable implementation
+> **Note:** numpy 2.0.0 is excluded in `requirements.txt`. It changes the shape of the inverse index returned by `np.unique(..., axis=0, return_inverse=True)`, which `aggregate_replicates` relies on (fixed in numpy 2.0.1).
 
-The main reusable PoLoN functions are provided in `helpers.py`. These functions allow users to apply the PoLoN predictive and signal-background models to their own count data without reproducing the individual calculations manually.
+---
 
-The high-level functions are:
+### Quick Start
 
-- `polon_predict_and_plot()` — PoLoN predictive modeling for count data.
-- `predict_signal_background_with_plot()` — signal-background modeling when the signal region is specified.
+The following example fits a small PoLoN model and a small signal + background model to synthetic data, shows the figures, and prints the fitted values next to the true ones. Save it as a `.py` file in the repository root (or paste it into a Python session started there) so that `helpers.py` can be imported.
 
-The lower-level functions in `helpers.py` implement the individual components required by these workflows, including the covariance matrix, kernel calculations, Laplace optimization, predictive quantities, and signal/background likelihood calculations.
+```python
+import numpy as np
+from helpers import *
 
-#### Detailed notebook demonstrations
+rng = np.random.default_rng(0)
 
-The Jupyter notebooks provide a more detailed view of the underlying calculations. Rather than only calling the high-level functions from `helpers.py`, the notebooks expose the lower-level steps of the implementation.
+# ---------------------------------------------------------------- 1. PoLoN
+x = np.linspace(0.1, 0.16, 10)
+alpha = 40 * np.exp(-30.6 * (x - 0.1))              # true rate, 40 -> 6
+X_train = np.repeat(x, 3)                            # 3 replicates at each input
+t_train = rng.poisson(np.repeat(alpha, 3))
 
-This makes the notebooks useful for users who want to:
+results = polon_predict_and_plot(X_train, t_train,
+                                 theta_init=np.array([0.05, 20.0]),
+                                 bounds=[(0.0001, 3), (0.01, 50)],
+                                 n_samples=1000)
+print("\nPoLoN: predicted mean (first 5 grid points):", results["poisson_mean_output"][:5].round(2))
+print("PoLoN: most probable counts (first 5):      ", results["most_probable_output"][:5])
 
-- understand how the PoLoN model is constructed,
-- inspect the individual computational steps,
-- modify parts of the calculation, or
-- reproduce the examples in the paper.
+# ------------------------------------------------- 2. signal + background
+c0, lam, q, S, u = np.exp(11.7), 30.6, 0.135, 300, 0.004      # true signal: S=300, q=0.135, u=0.004
+xu = np.linspace(0.1, 0.16, 24)
+rate = c0 * np.exp(-lam * xu) + S * np.exp(-(xu - q) ** 2 / (2 * u ** 2))
+X_all = np.repeat(xu, 3)
+t_all = rng.poisson(np.repeat(rate, 3))
+in_window = np.repeat(np.abs(xu - q) <= 2 * u, 3)             # signal window: q +- 2u
 
-Thus, `helpers.py` is intended as the reusable implementation, while the notebooks provide a transparent demonstration of how the implementation works.
+res = predict_signal_background_with_plot(X_all[~in_window], t_all[~in_window],
+                                          X_all[in_window], t_all[in_window],
+                                          X_input=xu,
+                                          bounds_theta=[(0.0001, 3), (0.01, 50)],
+                                          n_samples=1000)
+print(f"\nSignal fit:  A = {res['A_opt']:.1f} (true {S}),  q = {res['mu_opt']:.4f} (true {q}),"
+      f"  u = {res['sigma_opt']:.5f} (true {u})")
+print("Optimisers converged:", res["theta_success"], res["signal_success"])
+print("Most probable counts (first 5 grid points):", res["most_probable_output"][:5])
+```
 
+The Laplace solver in `helpers.py` takes conservative damped Newton steps, so fits take from seconds to a few minutes; expect a few minutes in total. Figures open in windows; close each one to continue.
+
+---
 
 ### Data Directory and Example Datasets
 
-All example datasets should be placed in the `data/` folder. You can include `.csv` or `.npy` files. Below is a brief description of the current example datasets provided:
+Example datasets are placed in the `data/` folder. You can include `.csv` or `.npy` files. The current example datasets are:
 
 | File Name                        | Type   | Description |
 |----------------------------------|--------|-------------|
 | `hour.csv`                        | CSV    | Hourly bike rental counts (real-world example) |
-| `unbinned_diphoton_mass.npy`      | NPY    | Unbinned diphoton mass data used for signal-background PoLoN example (Higgs search) |
+| `unbinned_diphoton_mass.npy`      | NPY    | Unbinned diphoton mass data used for the signal-background PoLoN example (Higgs search) |
 
 **Usage Example:**
 
 ```python
 import numpy as np
+import pandas as pd
 
 # Load unbinned diphoton mass dataset
 data = np.load("data/unbinned_diphoton_mass.npy")
 
 # Load bike rental dataset
-import pandas as pd
 bike_data = pd.read_csv("data/hour.csv")
 ```
----
-### Setup
-To run the project, it is recommended to use Python 3.9 or higher.  
-Install all required dependencies using the `requirements.txt` file:
-
-```bash
-pip install -r requirements.txt
-```
-After installing the dependencies, the notebooks can be launched with:
-
-```bash
-jupyter notebook
-```
-
-
 
 ---
 
-#### Core Functions in `helpers.py`
+### Functions in `helpers.py`
 
-These helper functions, defined in `helpers.py`, support the main PoLoN prediction workflow:
+The high-level functions are the main entry points:
 
-- **`compute_cov_matrix`**: Computes the RBF covariance matrix over the unique training inputs.  
-- **`compute_k_vec`**: Computes the kernel vector between the training inputs and a new input point.  
-- **`aggregate_replicates`**: Collapses repeated observations into per-location totals `T` and replicate counts `Nv`.  
-- **`neg_log_likelihood`**: Computes the negative Laplace-approximated log-likelihood used for hyperparameter optimization.  
-- **`optimise_hyperparameters`**: Maximises the Laplace marginal likelihood over the kernel hyperparameters.  
-- **`newton_optimization`**: Solves for the latent variables (`lambda`) using Newton's method.  
-- **`rbf_kernel`**: Computes the RBF kernel value between two points.  
-- **`predict`**: Predicts the latent log-rate mean and variance at one input (GP conditional for a new location, Laplace marginal at a training location).  
-- **`predict_many`**: Applies `predict` to several inputs; used by the prediction and plotting functions.  
+| Function | Purpose |
+|---|---|
+| `polon_predict_and_plot()` | PoLoN prediction: fit, predict and plot |
+| `predict_signal_background_with_plot()` | Signal + background model for a specified signal window: fit, predict and plot |
 
-Other internal utilities handle Hessians, Cholesky decompositions, Gaussian bumps, and log-likelihood contributions.
+Each has a predict-only counterpart that returns a results dictionary without plotting, and a plot-only function that draws from that dictionary without refitting:
+
+| Predict only | Plot only |
+|---|---|
+| `polon_predict()` | `plot_polon_prediction()` |
+| `predict_signal_background()` | `plot_signal_background()` |
+
+The lower-level functions implement the individual components:
+
+| Group | Functions |
+|---|---|
+| Kernel and covariance | `rbf_kernel`, `compute_cov_matrix`, `compute_k_vec` |
+| Repeated observations | `aggregate_replicates` |
+| Laplace approximation | `compute_residual`, `compute_gradient`, `compute_hessian`, `newton_optimization`, `log_det_cholesky` |
+| Hyperparameters | `neg_log_likelihood`, `optimise_hyperparameters` |
+| Prediction | `predict`, `predict_many` |
+| Signal + background likelihood | `gaussian_bump`, `background_loglik`, `signal_loglik`, `total_loglik`, `neg_total_loglik_scaled` |
+
+**How repeated observations are handled.** If several observations share the same input, `aggregate_replicates(X_all, t_all)` collapses them into the unique inputs `X` (M of them), the total count `T` and the number of replicates `Nv` at each. The Laplace approximation and the covariance matrix then work with M unique inputs, however many replicates there are.
+
+**Prediction at a point.** `predict(X_new, X, T, Nv, theta)` returns the mean and variance of the latent log-rate and which case was used: the Gaussian-process conditional for a new input (`"A"`), or the Laplace marginal for an input that was in the training data (`"B"`). `predict_many` applies it to many inputs. The PoLoN predictive mean is `exp(mu + std**2 / 2)`.
 
 ---
+
 #### 1. PoLoN Predictive Modeling
 
-The basic PoLoN predictive workflow is implemented in the reusable function:
-
-`polon_predict_and_plot()`
-
-This function can be used directly from `helpers.py` while modelling integer count data using the **PoLoN framework** without explicitly separating signal and background components.  
-
-The corresponding notebook, `PoLoN_predictive.ipynb`, provides a lower-level demonstration of the same workflow, showing the individual steps used to construct the covariance matrix, obtain the Laplace approximation, and calculate the predictive distribution.
+The basic PoLoN predictive workflow is implemented in `polon_predict_and_plot()`. Use it for integer count data without separating signal and background components.
 
 ##### **Function Overview**
 
-- Trains the PoLoN model on input training data `(X_train, t_train)`.
-- Optimizes kernel hyperparameters via log-likelihood maximization.
+- Trains the PoLoN model on the training data `(X_train, t_train)`; repeated inputs are aggregated automatically.
+- Optimizes the kernel hyperparameters by maximizing the Laplace marginal likelihood.
 - Predicts the **expected counts** (Poisson mean) and **most probable counts** (Poisson mode) for new input points.
-- Computes **Monte Carlo-based 95% confidence intervals** for predicted counts.
-- Generates plots showing the predictive mean, confidence intervals, and most probable outputs. 
-> This modular structure allows users to reuse functions without modifying notebook code.
+- Computes **Monte Carlo-based 95% intervals** for the predicted counts.
+- Generates plots of the predictive mean, the intervals and the most probable outputs.
 
 ##### **Inputs**
 
 | Parameter      | Type       | Description |
 |----------------|------------|-------------|
-| `X_train`      | `np.ndarray` | Training input features (1D or 2D array) |
-| `t_train`      | `np.ndarray` | Training output counts |
-| `X_input`      | `np.ndarray`, optional | Points at which to predict outputs. Default: 100 evenly spaced points across the training range |
-| `theta_init`   | `np.ndarray`, optional | Initial guess for kernel hyperparameters. Default: `[0.01, 20.0]` |
-| `bounds`       | list of tuples, optional | Bounds for hyperparameters during optimization. Default: `[(0.0001, 30), (0.01, 30)]` |
-| `n_samples`    | int, optional | Number of Monte Carlo samples for most probable Poisson outputs. Default: 5000 |
+| `X_train`      | `np.ndarray` | Training inputs (1D, or 2D with one row per observation) |
+| `t_train`      | `np.ndarray` | Training counts, one per observation |
+| `X_input`      | `np.ndarray`, optional | Points at which to predict. Default: 100 evenly spaced points across the training range (1D inputs only) |
+| `theta_init`   | `np.ndarray`, optional | Initial guess for the kernel hyperparameters. Default: `[0.01, 20.0]` |
+| `bounds`       | list of tuples, optional | Bounds for the hyperparameters during optimization. Default: `[(0.0001, 30), (0.01, 30)]` |
+| `n_samples`    | int, optional | Number of Monte Carlo samples. Default: 5000 |
+| `plot`         | bool, optional | Draw the figure (1D inputs only). Default: `True` |
+| `theta`        | tuple, optional | Kernel hyperparameters `(sigma, gamma)`. If given, the hyperparameter optimization is skipped |
 
 ##### **Outputs**
 
-- `X_input`: Input points where predictions were made  
-- `mu_values`: Predictive mean of the latent log-rate  
-- `std_values`: Predictive standard deviation of the latent log-rate  
-- `poisson_mean_output`: Predictive mean of Poisson counts  
-- `lower_bounds`, `upper_bounds`: Monte Carlo-based 95% confidence intervals  
-- `most_probable_output`: Most probable Poisson counts (mode)  
+A dictionary containing:
 
-Plots showing the predictive mean, confidence intervals, and most probable outputs are automatically generated.
+- `X_input`: input points where predictions were made  
+- `mu_values`: predictive mean of the latent log-rate  
+- `std_values`: predictive standard deviation of the latent log-rate  
+- `poisson_mean_output`: predictive mean of the Poisson counts  
+- `lower_bounds`, `upper_bounds`: Monte Carlo-based 95% interval  
+- `most_probable_output`: most probable Poisson count (mode)  
+- `theta_opt`: kernel hyperparameters used (optimized, or the ones supplied)  
+- `theta_success`: optimizer success flag (`None` if `theta` was supplied)  
+- `X_train`, `t_train`: the training data, so that the results can be plotted on their own  
 
 ##### **Example**
 
 ```python
-from helpers import *
 import numpy as np
+from helpers import *
 
-# Example training data
-X_train = np.array([0.1, 0.12, 0.13, 0.15])
-t_train = np.array([5, 8, 12, 15])
+# Synthetic training data: a rate falling from 40 to about 6, with 3 replicates per input
+rng = np.random.default_rng(0)
+x = np.linspace(0.1, 0.16, 10)
+rate = 40 * np.exp(-30.6 * (x - 0.1))
+X_train = np.repeat(x, 3)
+t_train = rng.poisson(np.repeat(rate, 3))
 
-# Run PoLoN prediction
-results = polon_predict_and_plot(X_train, t_train)
+# Fit, predict and plot
+results = polon_predict_and_plot(X_train, t_train,
+                                 theta_init=np.array([0.05, 20.0]),
+                                 bounds=[(0.0001, 3), (0.01, 50)],
+                                 n_samples=1000)
 
-# Access predicted results
-poisson_mean = results["poisson_mean_output"]
-most_probable = results["most_probable_output"]
-lower_ci = results["lower_bounds"]
-upper_ci = results["upper_bounds"]
-
-print("Predicted Poisson mean:", poisson_mean)
-print("Most probable Poisson outputs:", most_probable)
-print("95% confidence intervals:", list(zip(lower_ci, upper_ci)))
-
+print("Predicted Poisson mean (first 5):", results["poisson_mean_output"][:5].round(2))
+print("Most probable counts (first 5):  ", results["most_probable_output"][:5])
+print("95% interval at the first point: ", results["lower_bounds"][0], "to", results["upper_bounds"][0])
 ```
+
+The predicted mean should fall from about 39 to about 7 across the range.
+
+##### **Redrawing and reusing a fit**
+
+The results dictionary contains everything needed to plot, so a figure can be redrawn without refitting. Passing `theta` skips the hyperparameter optimization.
+
+```python
+plot_polon_prediction(results)                                            # redraw without refitting
+results2 = polon_predict(X_train, t_train, theta=results["theta_opt"])    # reuse the hyperparameters, no plot
+```
+
 ---
 
 #### 2. Signal + Background Modeling
 
-The signal-background extension is implemented in the reusable function:
+The signal-background extension is implemented in `predict_signal_background_with_plot()`. Use it when the signal region is specified in advance: you provide the background and signal regions separately through `X_bg`, `t_bg`, `X_signal` and `t_signal`. The function does not determine the signal location itself (see [Unknown Signal Location Search](#3-unknown-signal-location-search) for that).
 
-`predict_signal_background_with_plot()`
-
-This workflow is intended for cases where the signal region is specified in advance. The user provides the background and signal regions separately through `X_bg`, `t_bg`, `X_signal`, and `t_signal`.
-
-The corresponding notebook, `PoLoN_signal_background.ipynb`, provides a lower-level demonstration of the calculation, including the construction of the background and signal likelihoods and the optimization of the signal parameters.
-
-The function does not automatically determine the signal location. The signal region must be specified by the user.
-
-This approach is particularly relevant in **physics applications** (e.g., Higgs Boson searches), where observed data are composed of a smooth stochastic background and a localized signal peak — both naturally represented within the PoLoN process.
-
+This approach is relevant in **physics applications** (e.g. Higgs boson searches), where the observed data are composed of a smooth stochastic background and a localized signal peak.
 
 ##### **Function Overview**
 
-- Optimizes **PoLoN hyperparameters** using the background-dominated region of the data.  
-- Extends the fitted PoLoN model to include a **localized signal variation**, modeled internally through an additional parameterized component.  
-- Predicts the full **PoLoN intensity field** (signal + background combined) across the entire input range.  
-- Automatically generates two subplots:
-  1. Total PoLoN prediction vs observed data  
-  2. Signal–background decomposition  
-
+- Optimizes the **PoLoN hyperparameters** using the background region only.
+- Fits a **localized Gaussian signal** (amplitude, location, width) on top of the fitted background.
+- Predicts the full intensity (signal + background) across the input range.
+- Computes the most probable count and a 95% interval of the total prediction by Monte Carlo sampling.
+- Generates two plots (see below).
 
 ##### **Inputs**
 
@@ -224,56 +255,83 @@ This approach is particularly relevant in **physics applications** (e.g., Higgs 
 | `X_bg` | `np.ndarray` | Input points for the background region |
 | `t_bg` | `np.ndarray` | Observed background counts |
 | `X_signal` | `np.ndarray` | Input points for the signal region |
-| `t_signal` | `np.ndarray` | Observed signal counts |
-| `bounds_theta` | list of tuples, optional | Bounds for PoLoN hyperparameters. Default: `[(0.0001, 2), (0.01, 50)]` |
-| `theta_init` | `np.ndarray`, optional | Initial guess for PoLoN hyperparameters. Default: `[0.05, 20.0]` |
-| `bounds_signal` | list of tuples, optional | Bounds for the localized signal parameters (scaled). Default: `[(0.01, 10), (μ_min/0.1, μ_max/0.1), (1.0, 50.0)]` |
+| `t_signal` | `np.ndarray` | Observed signal-region counts |
+| `bounds_theta` | list of tuples, optional | Bounds for the PoLoN hyperparameters. Default: `[(0.0001, 2), (0.01, 50)]` |
+| `theta_init` | `np.ndarray`, optional | Initial guess for the PoLoN hyperparameters. Default: `[0.05, 20.0]` |
+| `bounds_signal` | list of tuples, optional | Bounds for the signal parameters (scaled, see the note below). Default: `[(0.01, 10), (μ_min/0.1, μ_max/0.1), (1.0, 50.0)]` |
 | `signal_params0_scaled` | list or `np.ndarray`, optional | Initial guess for the scaled signal parameters. Default: `[1.0, mean(X_signal)/0.1, 4.0]` |
-| `X_input` | `np.ndarray`, optional | Input points where predictions are evaluated. Default: 100 evenly spaced points across all data. |
-
+| `X_input` | `np.ndarray`, optional | Points where predictions are evaluated. Default: 100 evenly spaced points across all data |
+| `n_samples` | int, optional | Number of Monte Carlo samples. Default: 5000 |
+| `plot` | bool, optional | Draw the figure (1D inputs only). Default: `True` |
+| `theta` | tuple, optional | Kernel hyperparameters `(sigma, gamma)`; skips the background optimization |
+| `signal_params` | tuple, optional | Signal parameters `(A, mu, sigma)` in input units; skips the signal optimization |
 
 ##### **Outputs**
 
-Returns a dictionary containing:
+A dictionary containing:
 
-- `theta_opt`: optimized PoLoN hyperparameters  
-- `A_opt`: optimized signal amplitude  
-- `mu_opt`: optimized signal mean (location)  
-- `sigma_opt`: optimized signal width (spread)  
+- `theta_opt`: PoLoN hyperparameters used  
+- `A_opt`: signal amplitude  
+- `mu_opt`: signal mean (location)  
+- `sigma_opt`: signal width (spread)  
 - `poisson_mean_background`: background contribution (PoLoN)  
-- `poisson_mean_total`: total PoLoN prediction (signal + background)  
-- `mu_values`: latent PoLoN mean field  
-- `std_values`: latent PoLoN standard deviation field  
+- `poisson_mean_total`: total prediction (signal + background)  
+- `mu_values`, `std_values`: latent PoLoN mean and standard deviation of the background  
 - `signal_component`: fitted localized signal contribution  
-- `lower_bounds`, `upper_bounds`: 95% interval of the predicted counts  
-- `most_probable_output`: most probable Poisson count (mode of the predictive distribution)  
-- `theta_success`, `signal_success`: optimization success flags  
-
+- `lower_bounds`, `upper_bounds`: Monte Carlo-based 95% interval of the total prediction  
+- `most_probable_output`: most probable count of the total prediction  
+- `theta_success`, `signal_success`: optimization success flags (`None` if the corresponding parameters were supplied)  
+- `X_input`, `X_bg`, `t_bg`, `X_signal`, `t_signal`: the points and data used, so that the results can be plotted on their own  
 
 ##### **Visualization Output**
 
-When executed, this function automatically generates **two plots**:
+When executed, the function generates **two plots**; `plot_signal_background(results)` redraws them from the results dictionary:
 
-1. **Total PoLoN Prediction vs Observed Data**  
-   - Blue: total PoLoN prediction (signal + background)  
+1. **Mean prediction**  
+   - Orange dots: observed data points (signal and background regions)  
+   - Blue: total prediction (signal + background)  
    - Green dashed: background-only component  
-   - Orange dots: observed data points (signal and background)  
-   - Shaded blue region: 95% interval of the predicted counts (log-normal rate plus signal, Poisson sampling)  
+   - Shaded blue region: 95% interval of the predicted counts  
 
-2. **Most Probable Output**  
-   - Orange dots: observed data points (signal and background)  
+2. **Most probable output**  
+   - Orange dots: observed data points  
    - Blue dots: most probable count at each prediction point  
 
-These visualizations show the fitted background, the combined (signal + background) prediction with its 95% interval, and the most probable count at each point. The fitted signal itself is returned as `signal_component`.
-
-
-##### **Example: Using `predict_signal_background_with_plot` with a signal window**
+##### **Example: synthetic data with a known signal**
 
 ```python
-from helpers import *  # adjust import as needed
+import numpy as np
+from helpers import *
 
-# Load unbinned data from repo
-unbinned_data = np.load("data/unbinned_diphoton_mass.npy")  # relative path in repo
+# Exponential background plus a Gaussian signal: strength S=300, location q=0.135, width u=0.004
+rng = np.random.default_rng(1)
+c0, lam, q, S, u = np.exp(11.7), 30.6, 0.135, 300, 0.004
+x = np.linspace(0.1, 0.16, 24)
+rate = c0 * np.exp(-lam * x) + S * np.exp(-(x - q) ** 2 / (2 * u ** 2))
+X_all = np.repeat(x, 3)                                   # 3 replicates per input
+t_all = rng.poisson(np.repeat(rate, 3))
+
+# Define the signal window (q +- 2u) and split the data into the two regions
+in_window = np.repeat(np.abs(x - q) <= 2 * u, 3)
+
+results = predict_signal_background_with_plot(
+    X_all[~in_window], t_all[~in_window],       # background region
+    X_all[in_window],  t_all[in_window],        # signal region
+    bounds_theta=[(0.0001, 3), (0.01, 50)],
+    n_samples=1000)
+
+print(f"Fitted signal: A = {results['A_opt']:.1f}, location = {results['mu_opt']:.4f}, width = {results['sigma_opt']:.5f}")
+print(f"True signal:   A = {S},   location = {q},    width = {u}")
+```
+
+##### **Example: Higgs diphoton spectrum with a signal window**
+
+```python
+import numpy as np
+from helpers import *
+
+# Load unbinned data from the repo
+unbinned_data = np.load("data/unbinned_diphoton_mass.npy")
 
 # Histogram setup
 xmin, xmax, step_size = 99.5, 160.5, 1.0
@@ -284,11 +342,11 @@ data_counts, _ = np.histogram(unbinned_data, bins=bin_edges)
 # --- Define a signal window (user chooses) ---
 signal_window = (bin_centres >= 120) & (bin_centres <= 140)
 
-# Split data manually into signal and background regions
-X_signal = bin_centres[signal_window]/1000
+# Split data manually into signal and background regions (inputs in units of TeV, i.e. GeV / 1000)
+X_signal = bin_centres[signal_window] / 1000
 t_signal = data_counts[signal_window]
 
-X_bg = bin_centres[~signal_window]/1000
+X_bg = bin_centres[~signal_window] / 1000
 t_bg = data_counts[~signal_window]
 
 # --- Run PoLoN prediction with background and signal inputs ---
@@ -296,106 +354,146 @@ results = predict_signal_background_with_plot(X_bg, t_bg, X_signal, t_signal)
 
 print("Optimized PoLoN hyperparameters:", results["theta_opt"])
 print("Optimized Gaussian signal (A, μ, σ):", results["A_opt"], results["mu_opt"], results["sigma_opt"])
-
 ```
-> **Note 1 :** This example demonstrates one way to define a **signal window** for separating background and signal regions in the data. The function itself does not automatically separate background and signal; you need to provide `X_bg`, `t_bg`, `X_signal`, and `t_signal` based on your chosen window.
 
+> **Note 1:** This example demonstrates one way to define a **signal window** for separating background and signal regions in the data. The function does not separate background and signal automatically; you need to provide `X_bg`, `t_bg`, `X_signal` and `t_signal` based on your chosen window.
 
+> **Note 2:** This approach relies on the assumption that the signal is weak relative to the background. We plan to investigate the strong-signal regime in future work.
 
-> **Note 2 :** This approach relies on the assumption that the signal is weak relative to the background. We plan to investigate the strong-signal regime in future work.
+> **Note 3:** This function can be computationally expensive, especially when exploring multiple signal strengths or realizations. For large-scale experiments, **parallelization (e.g. via cluster job submission)** is recommended.
 
+> **Note 4 (units):** the signal parameters are optimized in scaled variables: amplitude = 100 × `a`, location = 0.1 × `m`, width = 0.001 × `s`. The defaults assume inputs of order 0.1 (as above, where GeV is divided by 1000) and signal widths between 0.001 and 0.05 in input units. For data on a different scale, rescale the inputs or adjust `bounds_signal` and `signal_params0_scaled`.
 
-> **Note 3 :**  
-> This function can be computationally expensive, especially when exploring multiple signal strengths or realizations.  
-> For large-scale experiments, **parallelization (e.g., via Amarel job submission or HPC clusters)** is recommended.  
 ---
 
 #### 3. Unknown Signal Location Search
 
-In many applications, the location of a localized signal is not known in advance. To address this, the repository provides a sliding-window signal-search procedure that searches for candidate signal regions directly from the observed count data.
+In many applications the location of a localized signal is not known in advance. The repository provides a sliding-window search that looks for candidate signal regions in the count data.
 
-The method divides the input range into overlapping candidate windows. For each window, the points inside the window are treated as a possible signal region, while the remaining points are used to estimate the PoLoN background model. A Gaussian signal component is then fitted together with the background within the candidate region. By repeating this procedure across the input range, the method can estimate the signal parameters without requiring the signal location to be specified beforehand.
+The method divides the input range into overlapping candidate windows. For each window, the points inside it are treated as a possible signal region, while the remaining points are used to estimate the PoLoN background. A Gaussian signal is then fitted within the candidate window, and the fitted parameters and likelihoods are recorded.
 
-The complete runnable example is provided in:
+The script `scripts/unknown_location_signal_search.py` generates a synthetic Poisson count dataset containing a localized Gaussian signal and runs the search on it. The true signal strength and location are used only to generate the data; they are not given to the search.
 
-```text
-scripts/unknown_location_signal_search.py
-```
+##### Running the search
 
-The script generates a synthetic Poisson count dataset containing a localized Gaussian signal and then performs the unknown-location signal search. The signal strength and signal location used when generating the synthetic dataset are not provided to the search procedure; they are used only to construct the test data.
-
-##### Running the example
-
-From the repository root, run:
+Run it from the repository root, as a module, so that `helpers.py` is found:
 
 ```bash
-python scripts/unknown_location_signal_search.py
+python -m scripts.unknown_location_signal_search --signal_strength 300 --n_instances_per_X 3 --seed 42 --window_size 10 --signal_location 0.135 --output_file scan_results.csv
 ```
 
-The example demonstrates the complete workflow:
+> **Note:** `python scripts/unknown_location_signal_search.py` fails with `No module named 'helpers'` when run from the repository root, because Python only searches the script's own folder. Use the command above, or set `PYTHONPATH=.` first.
 
-1. Generate synthetic Poisson count data containing a localized Gaussian signal.
-2. Scan the input range using a sliding window.
-3. Fit the PoLoN background model using the data outside each candidate window.
-4. Fit a Gaussian signal together with the background within each candidate window.
-5. Record the fitted signal and background parameters and the likelihood for each candidate window.
-6. Combine the candidate-window results using likelihood-weighted parameter estimates.
+| Option | Default | Description |
+|---|---|---|
+| `--signal_strength` | 50 | Amplitude of the injected Gaussian signal |
+| `--n_instances_per_X` | 20 | Number of replicate observations at each of the 40 inputs |
+| `--seed` | 42 | Random seed for the synthetic data |
+| `--window_size` | 10 | Number of unique inputs in each candidate window |
+| `--signal_location` | 0.135 | Location of the injected signal |
+| `--output_file` | `scan_results.csv` | Output file (overwritten if it exists) |
 
-The main search function is:
+The search is slow with the solver in `helpers.py`: roughly a minute per window for 40 inputs, so about 30 minutes for the default window size of 10 (31 windows). One row is written to the output file as soon as each window is finished.
+
+##### Output
+
+One row per candidate window:
+
+| Column | Description |
+|---|---|
+| `window_index`, `window_center`, `x_min`, `x_max` | Position of the candidate window |
+| `ll_bg` | Log-likelihood of the points inside the window under the background-only model |
+| `ll_signal` | Log-likelihood of the same points under background + fitted signal |
+| `TS` | Test statistic, `2 * (ll_signal - ll_bg)` |
+| `A_hat`, `mu_hat`, `sigma_hat` | Fitted signal amplitude, location and width |
+| `theta0`, `theta1` | PoLoN background hyperparameters |
+| `N_signal`, `N_bg` | Number of observations inside / outside the window |
+| `ll_tot` | Log-likelihood of all points under the fitted signal + background model |
+
+A large `TS` indicates evidence for a signal in that window. It is a likelihood-ratio statistic for comparing windows; no significance calibration is provided. The background length scale is optimized with a sigmoid regularization term (weight `penalty`, 5000 by default, set in `run_scan()`) that favors a smooth background, so that the background does not absorb the signal.
+
+##### Analysing the output
 
 ```python
-unknown_signal_search(
-    X,
-    t,
-    std_gaussian=0.004,
-    window_size=20,
-    penalty=2000
-)
+import numpy as np
+import pandas as pd
+
+df = pd.read_csv("scan_results.csv")
+
+# Window that explains the data best
+best = df.loc[df["ll_tot"].idxmax()]
+print(best[["window_center", "A_hat", "mu_hat", "sigma_hat", "TS"]])
+
+# Likelihood-weighted estimate across all windows
+w = np.exp(df["ll_tot"] - df["ll_tot"].max())
+for col in ["A_hat", "mu_hat", "sigma_hat"]:
+    print(col, (w * df[col]).sum() / w.sum())
 ```
 
-where:
+The weighting gives more weight to windows with larger `ll_tot`, which gives a single estimate of the signal amplitude, location and width.
 
-| Parameter | Description |
-|---|---|
-| `X` | Input locations |
-| `t` | Observed Poisson count data |
-| `std_gaussian` | Initial Gaussian signal width used in the signal model |
-| `window_size` | Number of unique input points included in each candidate window |
-| `penalty` | Penalty used during the background hyperparameter optimization |
+To search your own data, replace the call to `generate_data()` in `run_scan()` with your data: `X_raw` as an `(N, 1)` array of inputs, `t_raw` as an `(N,)` array of counts and `X_unique = np.unique(X_raw[:, 0])`.
 
-For each candidate window, the search records the fitted signal parameters, background parameters, and corresponding likelihood values. The resulting parameters include:
+---
 
-- `A_hat`: estimated signal amplitude
-- `mu_hat`: estimated signal location
-- `sigma_hat`: estimated signal width
-- `theta0`, `theta1`: PoLoN background hyperparameters
-- `ll_tot`: likelihood of the fitted signal-plus-background model
+#### 4. Bike Rental Example
 
-The script also calculates likelihood-weighted estimates across the candidate windows. The weighting gives greater contribution to candidate windows with larger values of `ll_tot`.
-The resulting likelihood-weighted estimates provide a single estimate of the signal amplitude, location, width, and PoLoN background parameters from the unknown-location search.
+The bike-rental data (`data/hour.csv`) have repeated observations at the same (hour, weekday) input, which `aggregate_replicates` handles. The example fits the odd hours of the first three weeks and predicts the even hours:
 
-This example is intended to demonstrate how the PoLoN framework can be used when the signal location is not known *a priori*.
+```python
+import numpy as np
+import pandas as pd
+from helpers import *
+
+df = pd.read_csv("data/hour.csv").iloc[:479]
+train, test = df[df["hr"] % 2 != 0], df[df["hr"] % 2 == 0]
+X_train = train[["hr", "weekday"]].to_numpy(float)
+y_train = train["cnt"].to_numpy(float)
+X_test = test[["hr", "weekday"]].to_numpy(float)
+y_test = test["cnt"].to_numpy(float)
+
+# Collapse repeated (hour, weekday) inputs: 82 unique inputs
+X, T, Nv = aggregate_replicates(X_train, y_train)
+
+# Kernel hyperparameters from a previous fit of these data.
+# To refit, use optimise_hyperparameters(X, T, Nv, theta_init) (slow).
+theta = (2.1939478, 7.19102992)
+C = compute_cov_matrix(X, *theta, regularization=1e-6)
+lam_star, _ = newton_optimization(T, Nv, C)
+
+# Predict the held-out even hours
+mu, std = predict_many(X, T, Nv, theta, X_test, lam_star=lam_star, c_reg=1e-6)
+y_pred = np.exp(mu + std ** 2 / 2)
+
+r2 = 1 - np.sum((y_test - y_pred) ** 2) / np.sum((y_test - y_test.mean()) ** 2)
+print(f"Unique inputs: {X.shape[0]},  test R^2 = {r2:.3f}")
+```
+
+The test R² should be about 0.84.
+
+---
 
 ### Tips & Best Practices
 
 - Use `polon_predict_and_plot()` when the primary goal is PoLoN-based count-data prediction.
 - Use `predict_signal_background_with_plot()` when a localized signal is present and the signal region can be specified in advance.
-- Use `unknown_signal_search()` when the signal location is not known in advance and a sliding-window search is desired.
-- Use the lower-level notebook calculations when you want to inspect or modify individual steps of the implementation.
+- Use the search script in `scripts/` when the signal location is not known in advance.
+- Use the predict-only functions (`polon_predict`, `predict_signal_background`) in scripts and batch jobs, and the plot-only functions to draw or restyle figures afterwards without refitting.
+- Pass `theta` (and `signal_params`) to reuse hyperparameters you have already fitted. This skips the slowest step.
 - For large datasets or repeated analyses, consider the computational cost of the Laplace approximation and hyperparameter optimization.
 
-- **Using Your Own Data:**  
-  - Place datasets in the `data/` folder.  
-  - Update file paths in the notebook or scripts accordingly. Supported formats include `.csv` and `.npy`.  
-  - Ensure that the data is formatted consistently with the examples.
+- **Using your own data:**  
+  - Place datasets in the `data/` folder. Supported formats include `.csv` and `.npy`.  
+  - Provide one observation per entry: `X` with one row per observation (repeated rows are fine) and `t` with the matching counts.  
+  - The signal fit assumes inputs of order 0.1 (see Note 4 above).  
 
-- **Performance Considerations:**  
-  - The functions, especially `predict_signal_background_with_plot()` and `unknown_signal_search()`, can be computationally intensive for large datasets or multiple signal realizations.  
-  - For heavy computations, consider **parallel execution**, HPC clusters, or job submission systems like Amarel.
+- **Performance considerations:**  
+  - The Laplace solver `newton_optimization` takes conservative damped steps, which makes every likelihood evaluation slow. `predict_signal_background_with_plot()` and the search script can run for many minutes.  
+  - For heavy computations, consider **parallel execution**, an HPC cluster, or a job submission system.  
 
-- **Modularity and Reusability:**  
-  The reusable PoLoN functions are defined in `helpers.py`. More specialized or computationally intensive workflows may be provided separately as standalone scripts.
+- **Reproducibility:**  
+  - Results are deterministic for a given machine, data and seed. On a nearly flat likelihood the optimizer can stop at slightly different hyperparameters on a different machine or library version, which can shift weak-window `TS` values by several percent; the predictions change very little.  
 
 - **Visualization:**  
-  - Both functions automatically generate plots to visualize predictions, uncertainties, and the signal-plus-background prediction (if applicable).  
+  - The plotting functions handle 1D inputs only.  
   - Use the plots to validate your signal window choice and assess model quality.
