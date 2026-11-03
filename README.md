@@ -34,7 +34,7 @@ PoLoN-Process/
 │   └── unknown_location_signal_search.py
 ├── LICENSE
 ├── README.md
-├── helper.py
+├── helpers.py
 └── requirements.txt
 ```
 ---
@@ -46,18 +46,18 @@ The repository provides two complementary ways to work with the PoLoN framework.
 
 #### Reusable implementation
 
-The main reusable PoLoN functions are provided in `helper.py`. These functions allow users to apply the PoLoN predictive and signal-background models to their own count data without reproducing the individual calculations manually.
+The main reusable PoLoN functions are provided in `helpers.py`. These functions allow users to apply the PoLoN predictive and signal-background models to their own count data without reproducing the individual calculations manually.
 
 The high-level functions are:
 
 - `polon_predict_and_plot()` — PoLoN predictive modeling for count data.
 - `predict_signal_background_with_plot()` — signal-background modeling when the signal region is specified.
 
-The lower-level functions in `helper.py` implement the individual components required by these workflows, including the covariance matrix, kernel calculations, Laplace optimization, predictive quantities, and signal/background likelihood calculations.
+The lower-level functions in `helpers.py` implement the individual components required by these workflows, including the covariance matrix, kernel calculations, Laplace optimization, predictive quantities, and signal/background likelihood calculations.
 
 #### Detailed notebook demonstrations
 
-The Jupyter notebooks provide a more detailed view of the underlying calculations. Rather than only calling the high-level functions from `helper.py`, the notebooks expose the lower-level steps of the implementation.
+The Jupyter notebooks provide a more detailed view of the underlying calculations. Rather than only calling the high-level functions from `helpers.py`, the notebooks expose the lower-level steps of the implementation.
 
 This makes the notebooks useful for users who want to:
 
@@ -66,7 +66,7 @@ This makes the notebooks useful for users who want to:
 - modify parts of the calculation, or
 - reproduce the examples in the paper.
 
-Thus, `helper.py` is intended as the reusable implementation, while the notebooks provide a transparent demonstration of how the implementation works.
+Thus, `helpers.py` is intended as the reusable implementation, while the notebooks provide a transparent demonstration of how the implementation works.
 
 
 ### Data Directory and Example Datasets
@@ -108,15 +108,19 @@ jupyter notebook
 
 ---
 
-#### Core Functions in `helper.py`
+#### Core Functions in `helpers.py`
 
-These helper functions, defined in `helper.py`, support the main PoLoN prediction workflow:
+These helper functions, defined in `helpers.py`, support the main PoLoN prediction workflow:
 
-- **`compute_cov_matrix`**: Computes the RBF covariance matrix for the training points.  
-- **`compute_K`**: Computes the covariance vector between training points and a new input point.  
-- **`neg_log_likelihood_function`**: Computes the negative log-likelihood for hyperparameter optimization.  
-- **`newton_optimization`**: Solves for the latent variables (`lambda`) using Newton’s method.  
-- **`rbf_kernel_extended`**: Computes the RBF kernel value between two points.  
+- **`compute_cov_matrix`**: Computes the RBF covariance matrix over the unique training inputs.  
+- **`compute_k_vec`**: Computes the kernel vector between the training inputs and a new input point.  
+- **`aggregate_replicates`**: Collapses repeated observations into per-location totals `T` and replicate counts `Nv`.  
+- **`neg_log_likelihood`**: Computes the negative Laplace-approximated log-likelihood used for hyperparameter optimization.  
+- **`optimise_hyperparameters`**: Maximises the Laplace marginal likelihood over the kernel hyperparameters.  
+- **`newton_optimization`**: Solves for the latent variables (`lambda`) using Newton's method.  
+- **`rbf_kernel`**: Computes the RBF kernel value between two points.  
+- **`predict`**: Predicts the latent log-rate mean and variance at one input (GP conditional for a new location, Laplace marginal at a training location).  
+- **`predict_many`**: Applies `predict` to several inputs; used by the prediction and plotting functions.  
 
 Other internal utilities handle Hessians, Cholesky decompositions, Gaussian bumps, and log-likelihood contributions.
 
@@ -127,7 +131,7 @@ The basic PoLoN predictive workflow is implemented in the reusable function:
 
 `polon_predict_and_plot()`
 
-This function can be used directly from `helper.py` while modelling integer count data using the **PoLoN framework** without explicitly separating signal and background components.  
+This function can be used directly from `helpers.py` while modelling integer count data using the **PoLoN framework** without explicitly separating signal and background components.  
 
 The corresponding notebook, `PoLoN_predictive.ipynb`, provides a lower-level demonstration of the same workflow, showing the individual steps used to construct the covariance matrix, obtain the Laplace approximation, and calculate the predictive distribution.
 
@@ -165,7 +169,7 @@ Plots showing the predictive mean, confidence intervals, and most probable outpu
 ##### **Example**
 
 ```python
-from helper import *
+from helpers import *
 import numpy as np
 
 # Example training data
@@ -224,7 +228,7 @@ This approach is particularly relevant in **physics applications** (e.g., Higgs 
 | `bounds_theta` | list of tuples, optional | Bounds for PoLoN hyperparameters. Default: `[(0.0001, 2), (0.01, 50)]` |
 | `theta_init` | `np.ndarray`, optional | Initial guess for PoLoN hyperparameters. Default: `[0.05, 20.0]` |
 | `bounds_signal` | list of tuples, optional | Bounds for the localized signal parameters (scaled). Default: `[(0.01, 10), (μ_min/0.1, μ_max/0.1), (1.0, 50.0)]` |
-| `signal_params0_scaled` | list or `np.ndarray`, optional | Initial guess for the scaled signal parameters. Default: `[1.0, mean(X_signal)/0.1, 0.01]` |
+| `signal_params0_scaled` | list or `np.ndarray`, optional | Initial guess for the scaled signal parameters. Default: `[1.0, mean(X_signal)/0.1, 4.0]` |
 | `X_input` | `np.ndarray`, optional | Input points where predictions are evaluated. Default: 100 evenly spaced points across all data. |
 
 
@@ -241,6 +245,8 @@ Returns a dictionary containing:
 - `mu_values`: latent PoLoN mean field  
 - `std_values`: latent PoLoN standard deviation field  
 - `signal_component`: fitted localized signal contribution  
+- `lower_bounds`, `upper_bounds`: 95% interval of the predicted counts  
+- `most_probable_output`: most probable Poisson count (mode of the predictive distribution)  
 - `theta_success`, `signal_success`: optimization success flags  
 
 
@@ -251,21 +257,20 @@ When executed, this function automatically generates **two plots**:
 1. **Total PoLoN Prediction vs Observed Data**  
    - Blue: total PoLoN prediction (signal + background)  
    - Green dashed: background-only component  
-   - Orange / gray dots: observed data points (signal and background)  
-   - Shaded blue region: uncertainty band from PoLoN fluctuations  
+   - Orange dots: observed data points (signal and background)  
+   - Shaded blue region: 95% interval of the predicted counts (log-normal rate plus signal, Poisson sampling)  
 
-2. **Signal and Background Decomposition**  
-   - Red: localized signal component  
-   - Green dashed: background component  
-   - Blue: total PoLoN model output  
+2. **Most Probable Output**  
+   - Orange dots: observed data points (signal and background)  
+   - Blue dots: most probable count at each prediction point  
 
-These visualizations show the fitted background, localized signal component, and their combined contribution to the predicted count rate.
+These visualizations show the fitted background, the combined (signal + background) prediction with its 95% interval, and the most probable count at each point. The fitted signal itself is returned as `signal_component`.
 
 
 ##### **Example: Using `predict_signal_background_with_plot` with a signal window**
 
 ```python
-from helper import *  # adjust import as needed
+from helpers import *  # adjust import as needed
 
 # Load unbinned data from repo
 unbinned_data = np.load("data/unbinned_diphoton_mass.npy")  # relative path in repo
@@ -314,7 +319,7 @@ The method divides the input range into overlapping candidate windows. For each 
 The complete runnable example is provided in:
 
 ```text
-scripts/unknown_location_signal_search_example.py
+scripts/unknown_location_signal_search.py
 ```
 
 The script generates a synthetic Poisson count dataset containing a localized Gaussian signal and then performs the unknown-location signal search. The signal strength and signal location used when generating the synthetic dataset are not provided to the search procedure; they are used only to construct the test data.
@@ -324,7 +329,7 @@ The script generates a synthetic Poisson count dataset containing a localized Ga
 From the repository root, run:
 
 ```bash
-python scripts/unknown_location_signal_search_example.py
+python scripts/unknown_location_signal_search.py
 ```
 
 The example demonstrates the complete workflow:
@@ -375,7 +380,7 @@ This example is intended to demonstrate how the PoLoN framework can be used when
 
 - Use `polon_predict_and_plot()` when the primary goal is PoLoN-based count-data prediction.
 - Use `predict_signal_background_with_plot()` when a localized signal is present and the signal region can be specified in advance.
-- Use `unknown_location_signal_search()` when the signal location is not known in advance and a sliding-window search is desired.
+- Use `unknown_signal_search()` when the signal location is not known in advance and a sliding-window search is desired.
 - Use the lower-level notebook calculations when you want to inspect or modify individual steps of the implementation.
 - For large datasets or repeated analyses, consider the computational cost of the Laplace approximation and hyperparameter optimization.
 
@@ -385,18 +390,12 @@ This example is intended to demonstrate how the PoLoN framework can be used when
   - Ensure that the data is formatted consistently with the examples.
 
 - **Performance Considerations:**  
-  - The functions, especially `predict_signal_background_with_plot()` and `unknown_location_signal_search()`, can be computationally intensive for large datasets or multiple signal realizations.  
+  - The functions, especially `predict_signal_background_with_plot()` and `unknown_signal_search()`, can be computationally intensive for large datasets or multiple signal realizations.  
   - For heavy computations, consider **parallel execution**, HPC clusters, or job submission systems like Amarel.
 
 - **Modularity and Reusability:**  
-  The reusable PoLoN functions are defined in `helper.py`. More specialized or computationally intensive workflows may be provided separately as standalone scripts.
+  The reusable PoLoN functions are defined in `helpers.py`. More specialized or computationally intensive workflows may be provided separately as standalone scripts.
 
 - **Visualization:**  
-  - Both functions automatically generate plots to visualize predictions, uncertainties, and signal-background decomposition (if applicable).  
+  - Both functions automatically generate plots to visualize predictions, uncertainties, and the signal-plus-background prediction (if applicable).  
   - Use the plots to validate your signal window choice and assess model quality.
-    
-
-
-
-
-
