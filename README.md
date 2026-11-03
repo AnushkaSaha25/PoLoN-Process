@@ -216,9 +216,6 @@ print("Predicted Poisson mean (first 5):", results["poisson_mean_output"][:5].ro
 print("Most probable counts (first 5):  ", results["most_probable_output"][:5])
 print("95% interval at the first point: ", results["lower_bounds"][0], "to", results["upper_bounds"][0])
 ```
-
-The predicted mean should fall from about 39 to about 7 across the range.
-
 ##### **Redrawing and reusing a fit**
 
 The results dictionary contains everything needed to plot, so a figure can be redrawn without refitting. Passing `theta` skips the hyperparameter optimization.
