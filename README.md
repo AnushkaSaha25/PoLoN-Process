@@ -384,7 +384,6 @@ python -m scripts.unknown_location_signal_search --signal_strength 300 --n_insta
 | `--signal_location` | 0.135 | Location of the injected signal |
 | `--output_file` | `scan_results.csv` | Output file (overwritten if it exists) |
 
-The search is slow with the solver in `helpers.py`: roughly a minute per window for 40 inputs, so about 30 minutes for the default window size of 10 (31 windows). One row is written to the output file as soon as each window is finished.
 
 ##### Output
 
