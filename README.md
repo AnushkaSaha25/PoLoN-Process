@@ -150,8 +150,6 @@ The lower-level functions implement the individual components:
 
 **How repeated observations are handled.** If several observations share the same input, `aggregate_replicates(X_all, t_all)` collapses them into the unique inputs `X` (M of them), the total count `T` and the number of replicates `Nv` at each. The Laplace approximation and the covariance matrix then work with M unique inputs, however many replicates there are.
 
-**Prediction at a point.** `predict(X_new, X, T, Nv, theta)` returns the mean and variance of the latent log-rate and which case was used: the Gaussian-process conditional for a new input (`"A"`), or the Laplace marginal for an input that was in the training data (`"B"`). `predict_many` applies it to many inputs. The PoLoN predictive mean is `exp(mu + std**2 / 2)`.
-
 ---
 
 #### 1. PoLoN Predictive Modeling
