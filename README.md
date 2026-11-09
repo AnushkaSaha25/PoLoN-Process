@@ -331,7 +331,7 @@ bin_centres = np.arange(xmin + step_size/2, xmax + step_size/2, step_size)
 data_counts, _ = np.histogram(unbinned_data, bins=bin_edges)
 
 # --- Define a signal window (user chooses) ---
-signal_window = (bin_centres >= 120) & (bin_centres <= 140)
+signal_window = (bin_centres >= 120) & (bin_centres <= 130)
 
 # Split data manually into signal and background regions (inputs in units of TeV, i.e. GeV / 1000)
 X_signal = bin_centres[signal_window] / 1000
