@@ -370,7 +370,7 @@ The script `scripts/unknown_location_signal_search.py` generates a synthetic Poi
 Run it from the repository root, as a module, so that `helpers.py` is found:
 
 ```bash
-python -m scripts.unknown_location_signal_search --signal_strength 300 --n_instances_per_X 3 --seed 42 --window_size 10 --signal_location 0.135 --output_file scan_results.csv
+python -m scripts.unknown_location_signal_search --signal_strength 300 --n_instances_per_X 3 --seed 42 --window_size 20 --signal_location 0.135 --output_file scan_results.csv
 ```
 
 > **Note:** `python scripts/unknown_location_signal_search.py` fails with `No module named 'helpers'` when run from the repository root, because Python only searches the script's own folder. Use the command above, or set `PYTHONPATH=.` first.
@@ -380,7 +380,7 @@ python -m scripts.unknown_location_signal_search --signal_strength 300 --n_insta
 | `--signal_strength` | 50 | Amplitude of the injected Gaussian signal |
 | `--n_instances_per_X` | 20 | Number of replicate observations at each of the 40 inputs |
 | `--seed` | 42 | Random seed for the synthetic data |
-| `--window_size` | 10 | Number of unique inputs in each candidate window |
+| `--window_size` | 20 | Number of unique inputs in each candidate window |
 | `--signal_location` | 0.135 | Location of the injected signal |
 | `--output_file` | `scan_results.csv` | Output file (overwritten if it exists) |
 
