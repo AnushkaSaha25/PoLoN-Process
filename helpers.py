@@ -105,7 +105,7 @@ def compute_hessian(C, lambda_vector, Nv):
 def newton_optimization(T, Nv, C, max_iter=20000, tol=1e-6):
     """
     Solve C^{-1} lambda^* = D(lambda^*)  via Newton-Raphson.
-
+    Each Newton step is damped by a factor 0.001. Iteration stops when max|change| < tol (default 1e-6) or after max_iter (default 20000) steps.
     Parameters
     ----------
     T  : (M,) total counts per location
