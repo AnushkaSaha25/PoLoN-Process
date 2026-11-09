@@ -464,7 +464,6 @@ The test R² should be about 0.84.
 ---
 
 ### Tips & Best Practices
-
 - Use `polon_predict_and_plot()` when the primary goal is PoLoN-based count-data prediction.
 - Use `predict_signal_background_with_plot()` when a localized signal is present and the signal region can be specified in advance.
 - Use the search script in `scripts/` when the signal location is not known in advance.
@@ -476,6 +475,8 @@ The test R² should be about 0.84.
   - Place datasets in the `data/` folder. Supported formats include `.csv` and `.npy`.  
   - Provide one observation per entry: `X` with one row per observation (repeated rows are fine) and `t` with the matching counts.  
   - The signal fit assumes inputs of order 0.1 (see Note 4 above).  
+
+- **Solver:** `newton_optimization` uses a damped Newton–Raphson step (factor 0.001, tolerance 1e-6, at most 20,000 iterations).
 
 - **Performance considerations:**  
   - The Laplace solver `newton_optimization` takes conservative damped steps, which makes every likelihood evaluation slow. `predict_signal_background_with_plot()` and the search script can run for many minutes.  
