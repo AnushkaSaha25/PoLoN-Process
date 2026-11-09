@@ -202,7 +202,7 @@ if __name__ == "__main__":
     parser.add_argument("--signal_strength",   type=float, default=50)
     parser.add_argument("--n_instances_per_X", type=int,   default=20)
     parser.add_argument("--seed",              type=int,   default=42)
-    parser.add_argument("--window_size",       type=int,   default=10)
+    parser.add_argument("--window_size",       type=int,   default=20)
     parser.add_argument("--signal_location",   type=float, default=0.135)
     parser.add_argument("--output_file",       type=str,   default="scan_results.csv")
     args = parser.parse_args()
