@@ -66,8 +66,8 @@ def run_scan(
     signal_strength    = 250,
     n_instances_per_X  = 5,
     seed               = 42,
-    window_size        = 10,
-    penalty            = 5000,
+    window_size        = 20,
+    penalty            = 2000,
     signal_location    = 0.135,
     output_file        = "scan_results.csv"
 ):
